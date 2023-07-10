@@ -1,0 +1,11 @@
+query AllLists {
+  allLists {
+    id
+    name
+    notes {
+      id
+      text
+      author
+    }
+  }
+}

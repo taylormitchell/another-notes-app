@@ -1,0 +1,35 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Note {
+  id         Int          @id @default(autoincrement())
+  text       String
+  author     String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  lists      List[]       @relation("NoteToList")
+  NoteToList NoteToList[]
+}
+
+model List {
+  id         Int          @id @default(autoincrement())
+  name       String
+  createdAt  DateTime     @default(now())
+  notes      Note[]       @relation("NoteToList")
+  NoteToList NoteToList[]
+}
+
+model NoteToList {
+  noteId Int
+  listId Int
+  note   Note @relation(fields: [noteId], references: [id])
+  list   List @relation(fields: [listId], references: [id])
+
+  @@id([noteId, listId])
+}
