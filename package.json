@@ -16,5 +16,8 @@
     "graphql": "^16.7.1",
     "prisma": "^4.16.2",
     "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

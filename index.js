@@ -21,6 +21,7 @@ const typeDefs = gql`
   type Query {
     allNotes: [Note!]!
     allLists: [List!]!
+    getList(id: Int!): List
   }
 `;
 
@@ -28,6 +29,8 @@ const resolvers = {
   Query: {
     allNotes: () => prisma.note.findMany(),
     allLists: () => prisma.list.findMany({ include: { notes: true } }),
+    getList: (parent, args) =>
+      prisma.list.findUnique({ where: { id: args.id }, include: { notes: true } }),
   },
 };
 

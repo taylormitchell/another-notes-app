@@ -1,0 +1,31 @@
+query AllLists {
+  allLists {
+    id
+    name
+    notes {
+      id
+      text
+      author
+    }
+  }
+}
+
+query AllNotes {
+  allNotes {
+    id
+    text
+    author
+  }
+}
+
+query GetList($id: Int!) {
+  getList(id: $id) {
+    id
+    name
+    notes {
+      id
+      text
+      author
+    }
+  }
+}
