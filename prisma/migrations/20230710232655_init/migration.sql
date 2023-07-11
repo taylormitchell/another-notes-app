@@ -1,4 +1,20 @@
 -- CreateTable
+CREATE TABLE "Note" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "text" TEXT NOT NULL,
+    "author" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "List" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
 CREATE TABLE "NoteToList" (
     "noteId" INTEGER NOT NULL,
     "listId" INTEGER NOT NULL,

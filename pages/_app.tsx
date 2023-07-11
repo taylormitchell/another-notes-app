@@ -3,8 +3,9 @@ import BottomNav from "../components/BottomNav";
 import React from "react";
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 
+// set up apollo client to talk to graphql at /api/graphql
 const client = new ApolloClient({
-  uri: "http://localhost:4000",
+  uri: "/api/graphql",
   cache: new InMemoryCache(),
 });
 

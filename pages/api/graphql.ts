@@ -1,5 +1,6 @@
-const { ApolloServer, gql } = require("apollo-server");
-const { PrismaClient } = require("@prisma/client");
+import { ApolloServer, gql } from "apollo-server-micro";
+import { PrismaClient } from "@prisma/client";
+import { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
@@ -34,11 +35,21 @@ const resolvers = {
   },
 };
 
+// @todo what does this do?
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-server.listen().then(({ url }) => {
-  console.log(`Server ready at ${url}`);
-});
+const serverStartPromise = server.start();
+
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  await serverStartPromise;
+  return server.createHandler({ path: "/api/graphql" })(req, res);
+};
