@@ -30,3 +30,12 @@ query GetList($id: Int!) {
     }
   }
 }
+
+query GetNote($id: Int!) {
+  getNote(id: $id) {
+    id
+    text
+    author
+    createdAt
+  }
+}

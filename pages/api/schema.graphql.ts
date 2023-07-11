@@ -37,10 +37,16 @@ export type Query = {
   allLists: Array<List>;
   allNotes: Array<Note>;
   getList?: Maybe<List>;
+  getNote?: Maybe<Note>;
 };
 
 
 export type QueryGetListArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryGetNoteArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -153,6 +159,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allLists?: Resolver<Array<ResolversTypes['List']>, ParentType, ContextType>;
   allNotes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
   getList?: Resolver<Maybe<ResolversTypes['List']>, ParentType, ContextType, RequireFields<QueryGetListArgs, 'id'>>;
+  getNote?: Resolver<Maybe<ResolversTypes['Note']>, ParentType, ContextType, RequireFields<QueryGetNoteArgs, 'id'>>;
 };
 
 export type Resolvers<ContextType = any> = {

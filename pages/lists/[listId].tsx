@@ -1,6 +1,7 @@
 // pages/list/[id].tsx
 import { useRouter } from "next/router";
 import { Note, useGetListQuery } from "../../types/graphql";
+import Link from "next/link";
 
 // /list/[id].tsx
 const List = () => {
@@ -24,14 +25,14 @@ const List = () => {
   }
 
   const list = data.getList;
-  console.log(list);
-
   return (
     <div>
       <h2>{list.name}</h2>
       {list.notes.map((note: Note) => (
         <div key={note.id}>
-          <p>{note.text}</p>
+          <Link href={`/notes/${note.id}`}>
+            {note.id} - {note.text}
+          </Link>
         </div>
       ))}
     </div>

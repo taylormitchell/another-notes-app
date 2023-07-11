@@ -21,6 +21,7 @@ function prismaNoteToGraphql(note: PrismaNote): GraphQLNote {
   };
 }
 
+// @todo typechecking isn't working anymore
 const resolvers: Resolvers = {
   Query: {
     allNotes: async () => {
@@ -43,6 +44,10 @@ const resolvers: Resolvers = {
         ...list,
         notes: list.notes.map(prismaNoteToGraphql),
       };
+    },
+    getNote: async (_, args: { id: number }) => {
+      const note = await prisma.note.findUnique({ where: { id: args.id } });
+      return prismaNoteToGraphql(note);
     },
   },
 };

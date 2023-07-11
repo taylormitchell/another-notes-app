@@ -17,4 +17,5 @@ type Query {
   allNotes: [Note!]!
   allLists: [List!]!
   getList(id: Int!): List
+  getNote(id: Int!): Note
 }
