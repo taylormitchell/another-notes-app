@@ -26,6 +26,7 @@ query GetList($id: Int!) {
       id
       text
       author
+      createdAt
     }
   }
 }

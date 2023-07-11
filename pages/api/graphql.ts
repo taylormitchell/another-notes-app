@@ -1,37 +1,49 @@
 import { ApolloServer, gql } from "apollo-server-micro";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Note as PrismaNote } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
+import { buildSchema } from "graphql";
+import { Resolvers, Note as GraphQLNote, List as GraphQLList } from "./schema.graphql";
+import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient();
 
-const typeDefs = gql`
-  type Note {
-    id: Int!
-    text: String!
-    author: String!
-    createdAt: String!
-    updatedAt: String!
-  }
+// Read the schema file
+const schemaPath = path.join(process.cwd(), "pages/api/schema.graphql"); // Adjust path to your file
+const schemaString = fs.readFileSync(schemaPath, "utf8");
+const typeDefs = buildSchema(schemaString);
 
-  type List {
-    id: Int!
-    name: String!
-    notes: [Note!]!
-  }
+function prismaNoteToGraphql(note: PrismaNote): GraphQLNote {
+  return {
+    ...note,
+    createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
+  };
+}
 
-  type Query {
-    allNotes: [Note!]!
-    allLists: [List!]!
-    getList(id: Int!): List
-  }
-`;
-
-const resolvers = {
+const resolvers: Resolvers = {
   Query: {
-    allNotes: () => prisma.note.findMany(),
-    allLists: () => prisma.list.findMany({ include: { notes: true } }),
-    getList: (parent, args) =>
-      prisma.list.findUnique({ where: { id: args.id }, include: { notes: true } }),
+    allNotes: async () => {
+      const notes = await prisma.note.findMany();
+      return notes.map(prismaNoteToGraphql);
+    },
+    allLists: async () => {
+      const lists = await prisma.list.findMany({ include: { notes: true } });
+      return lists.map((list) => ({
+        ...list,
+        notes: list.notes.map(prismaNoteToGraphql),
+      }));
+    },
+    getList: async (_, args: { id: number }) => {
+      const list = await prisma.list.findUnique({
+        where: { id: args.id },
+        include: { notes: true },
+      });
+      return {
+        ...list,
+        notes: list.notes.map(prismaNoteToGraphql),
+      };
+    },
   },
 };
 

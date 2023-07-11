@@ -1,9 +1,13 @@
 overwrite: true
-schema: "http://localhost:4000" # replace with your server URL
+schema: "./pages/api/schema.graphql"
 documents: "./**/*.graphql"
 generates:
-  ./types/graphql.tsx:
+  ./types/graphql.ts:
     plugins:
       - "typescript"
       - "typescript-operations"
       - "typescript-react-apollo"
+  ./pages/api/schema.graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
