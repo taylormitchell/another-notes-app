@@ -8,23 +8,39 @@ async function main() {
   await prisma.list.deleteMany();
 
   const note1 = await prisma.note.create({
-    data: { text: "Note 1", author: "Taylor" },
+    data: { text: "Grocery shopping list for the week", author: "Alex" },
   });
 
   const note2 = await prisma.note.create({
-    data: { text: "Note 2", author: "Emily2" },
+    data: { text: "Goals for this year", author: "Alex" },
   });
 
   const note3 = await prisma.note.create({
-    data: { text: "Note 3", author: "Nobody" },
+    data: { text: "Books to read", author: "Alex" },
+  });
+
+  const note4 = await prisma.note.create({
+    data: { text: "Exercise routine for this month", author: "Alex" },
+  });
+
+  const note5 = await prisma.note.create({
+    data: { text: "Birthday gift ideas", author: "Alex" },
   });
 
   await prisma.list.create({
-    data: { name: "List 1", notes: { connect: [{ id: note1.id }, { id: note2.id }] } },
+    data: { name: "Daily To-Dos", notes: { connect: [{ id: note1.id }, { id: note2.id }] } },
   });
 
   await prisma.list.create({
-    data: { name: "List 2", notes: { connect: [{ id: note2.id }, { id: note3.id }] } },
+    data: { name: "Personal Goals", notes: { connect: [{ id: note2.id }, { id: note3.id }] } },
+  });
+
+  await prisma.list.create({
+    data: { name: "Bookshelf", notes: { connect: [{ id: note3.id }, { id: note4.id }] } },
+  });
+
+  await prisma.list.create({
+    data: { name: "Fitness Routine", notes: { connect: [{ id: note4.id }, { id: note5.id }] } },
   });
 }
 

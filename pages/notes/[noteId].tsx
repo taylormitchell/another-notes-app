@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { Note, useGetNoteQuery } from "../../types/graphql";
+import { useGetNoteQuery } from "../../types/graphql";
 
 export default () => {
   const router = useRouter();
@@ -25,6 +25,7 @@ export default () => {
     <div>
       <h2>id: {note.id}</h2>
       <p>text: {note.text}</p>
+      <p>lists: {note.lists.map((l) => l.name).join(", ")}</p>
     </div>
   );
 };

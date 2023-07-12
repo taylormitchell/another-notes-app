@@ -23,11 +23,29 @@ export type List = {
   notes: Array<Note>;
 };
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  createList: List;
+  createNote: Note;
+};
+
+
+export type MutationCreateListArgs = {
+  name: Scalars['String']['input'];
+};
+
+
+export type MutationCreateNoteArgs = {
+  author: Scalars['String']['input'];
+  text: Scalars['String']['input'];
+};
+
 export type Note = {
   __typename?: 'Note';
   author: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  lists: Array<List>;
   text: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -124,6 +142,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   List: ResolverTypeWrapper<List>;
+  Mutation: ResolverTypeWrapper<{}>;
   Note: ResolverTypeWrapper<Note>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -134,6 +153,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Int: Scalars['Int']['output'];
   List: List;
+  Mutation: {};
   Note: Note;
   Query: {};
   String: Scalars['String']['output'];
@@ -146,10 +166,16 @@ export type ListResolvers<ContextType = any, ParentType extends ResolversParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  createList?: Resolver<ResolversTypes['List'], ParentType, ContextType, RequireFields<MutationCreateListArgs, 'name'>>;
+  createNote?: Resolver<ResolversTypes['Note'], ParentType, ContextType, RequireFields<MutationCreateNoteArgs, 'author' | 'text'>>;
+};
+
 export type NoteResolvers<ContextType = any, ParentType extends ResolversParentTypes['Note'] = ResolversParentTypes['Note']> = {
   author?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  lists?: Resolver<Array<ResolversTypes['List']>, ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -164,6 +190,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 
 export type Resolvers<ContextType = any> = {
   List?: ListResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
   Note?: NoteResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
 };

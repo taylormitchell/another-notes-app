@@ -24,11 +24,29 @@ export type List = {
   notes: Array<Note>;
 };
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  createList: List;
+  createNote: Note;
+};
+
+
+export type MutationCreateListArgs = {
+  name: Scalars['String']['input'];
+};
+
+
+export type MutationCreateNoteArgs = {
+  author: Scalars['String']['input'];
+  text: Scalars['String']['input'];
+};
+
 export type Note = {
   __typename?: 'Note';
   author: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   id: Scalars['Int']['output'];
+  lists: Array<List>;
   text: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -73,7 +91,22 @@ export type GetNoteQueryVariables = Exact<{
 }>;
 
 
-export type GetNoteQuery = { __typename?: 'Query', getNote?: { __typename?: 'Note', id: number, text: string, author: string, createdAt: string } | null };
+export type GetNoteQuery = { __typename?: 'Query', getNote?: { __typename?: 'Note', id: number, text: string, author: string, createdAt: string, lists: Array<{ __typename?: 'List', id: number, name: string }> } | null };
+
+export type CreateNoteMutationVariables = Exact<{
+  text: Scalars['String']['input'];
+  author: Scalars['String']['input'];
+}>;
+
+
+export type CreateNoteMutation = { __typename?: 'Mutation', createNote: { __typename?: 'Note', id: number, text: string, author: string, createdAt: string } };
+
+export type CreateListMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+}>;
+
+
+export type CreateListMutation = { __typename?: 'Mutation', createList: { __typename?: 'List', id: number, name: string } };
 
 
 export const AllListsDocument = gql`
@@ -201,6 +234,10 @@ export const GetNoteDocument = gql`
     text
     author
     createdAt
+    lists {
+      id
+      name
+    }
   }
 }
     `;
@@ -232,3 +269,74 @@ export function useGetNoteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Ge
 export type GetNoteQueryHookResult = ReturnType<typeof useGetNoteQuery>;
 export type GetNoteLazyQueryHookResult = ReturnType<typeof useGetNoteLazyQuery>;
 export type GetNoteQueryResult = Apollo.QueryResult<GetNoteQuery, GetNoteQueryVariables>;
+export const CreateNoteDocument = gql`
+    mutation CreateNote($text: String!, $author: String!) {
+  createNote(text: $text, author: $author) {
+    id
+    text
+    author
+    createdAt
+  }
+}
+    `;
+export type CreateNoteMutationFn = Apollo.MutationFunction<CreateNoteMutation, CreateNoteMutationVariables>;
+
+/**
+ * __useCreateNoteMutation__
+ *
+ * To run a mutation, you first call `useCreateNoteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNoteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNoteMutation, { data, loading, error }] = useCreateNoteMutation({
+ *   variables: {
+ *      text: // value for 'text'
+ *      author: // value for 'author'
+ *   },
+ * });
+ */
+export function useCreateNoteMutation(baseOptions?: Apollo.MutationHookOptions<CreateNoteMutation, CreateNoteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNoteMutation, CreateNoteMutationVariables>(CreateNoteDocument, options);
+      }
+export type CreateNoteMutationHookResult = ReturnType<typeof useCreateNoteMutation>;
+export type CreateNoteMutationResult = Apollo.MutationResult<CreateNoteMutation>;
+export type CreateNoteMutationOptions = Apollo.BaseMutationOptions<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateListDocument = gql`
+    mutation CreateList($name: String!) {
+  createList(name: $name) {
+    id
+    name
+  }
+}
+    `;
+export type CreateListMutationFn = Apollo.MutationFunction<CreateListMutation, CreateListMutationVariables>;
+
+/**
+ * __useCreateListMutation__
+ *
+ * To run a mutation, you first call `useCreateListMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateListMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createListMutation, { data, loading, error }] = useCreateListMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useCreateListMutation(baseOptions?: Apollo.MutationHookOptions<CreateListMutation, CreateListMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateListMutation, CreateListMutationVariables>(CreateListDocument, options);
+      }
+export type CreateListMutationHookResult = ReturnType<typeof useCreateListMutation>;
+export type CreateListMutationResult = Apollo.MutationResult<CreateListMutation>;
+export type CreateListMutationOptions = Apollo.BaseMutationOptions<CreateListMutation, CreateListMutationVariables>;

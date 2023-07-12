@@ -46,8 +46,31 @@ const resolvers: Resolvers = {
       };
     },
     getNote: async (_, args: { id: number }) => {
-      const note = await prisma.note.findUnique({ where: { id: args.id } });
+      // @todo what if note doesn't exist?
+      const note = await prisma.note.findUnique({
+        where: { id: args.id },
+        include: { lists: true },
+      });
       return prismaNoteToGraphql(note);
+    },
+  },
+  Mutation: {
+    createNote: async (_, args: { text: string; author: string }) => {
+      const note = await prisma.note.create({
+        data: {
+          text: args.text,
+          author: args.author,
+        },
+      });
+      return prismaNoteToGraphql(note);
+    },
+    createList: async (_, args: { name: string }) => {
+      const list = await prisma.list.create({
+        data: {
+          name: args.name,
+        },
+      });
+      return list;
     },
   },
 };

@@ -37,5 +37,30 @@ query GetNote($id: Int!) {
     text
     author
     createdAt
+    lists {
+      id
+      name
+    }
+  }
+}
+
+mutation CreateNote($text: String!, $author: String!) {
+  createNote(
+    text: $text
+    author: $author
+  ) {
+    id
+    text
+    author
+    createdAt
+  }
+} 
+
+mutation CreateList($name: String!) {
+  createList(
+    name: $name
+  ) {
+    id
+    name
   }
 }

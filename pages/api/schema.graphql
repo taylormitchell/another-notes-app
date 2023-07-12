@@ -5,6 +5,7 @@ type Note {
   author: String!
   createdAt: String!
   updatedAt: String!
+  lists: [List!]!
 }
 
 type List {
@@ -18,4 +19,9 @@ type Query {
   allLists: [List!]!
   getList(id: Int!): List
   getNote(id: Int!): Note
+}
+
+type Mutation {
+  createNote(text: String!, author: String!): Note!
+  createList(name: String!): List!
 }
