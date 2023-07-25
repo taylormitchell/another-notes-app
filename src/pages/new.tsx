@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useCreateNoteMutation } from "../types/graphql";
+// import { useCreateNoteMutation } from "../types/graphql";
 
 export default () => {
   // create note mutation
-  const [createNote] = useCreateNoteMutation();
-  const [notes, setNotes] = useState([]);
-  const [lists, setLists] = useState([]); // TODO: useAllListsQuery
+  // const [createNote] = useCreateNoteMutation();
+  // const [notes, setNotes] = useState([]);
+  // const [lists, setLists] = useState([]); // TODO: useAllListsQuery
 
   // form to create a new note
   return (
     <div>
-      <div>
+      {/* <div>
         <span>Lists:</span>
         <input
           type="text"
@@ -42,7 +42,7 @@ export default () => {
           <input type="text" name="text" />
         </label>
         <input type="submit" value="Submit" />
-      </form>
+      </form> */}
     </div>
   );
 };

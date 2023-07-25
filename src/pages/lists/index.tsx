@@ -1,22 +1,31 @@
 import React from "react";
-import { useAllListsQuery, useCreateListMutation } from "../types/graphql";
 import Link from "next/link";
+import { List } from "@prisma/client";
+import axios from "axios";
+import { getListsResponse } from "../api/lists";
+import { useQuery } from "react-query";
+
+async function getLists(): Promise<List[]> {
+  const { data } = await axios.get<getListsResponse>("/api/lists");
+  if (!data) throw new Error("No data");
+  if (data.error) throw new Error(data.error);
+  return data.value;
+}
 
 const Lists: React.FC = () => {
-  const { data, loading, error, refetch } = useAllListsQuery();
-  const [createList] = useCreateListMutation();
+  const { data: lists, error, isLoading } = useQuery("lists", getLists);
 
-  if (loading) return <p>Loading...</p>;
+  if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error :(</p>;
 
   return (
     <div>
-      {data?.allLists.map((list) => (
+      {lists.map((list) => (
         <div key={list.id}>
           <Link href={`/lists/${list.id}`}>{list.name}</Link>
         </div>
       ))}
-      <div>
+      {/* <div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -31,7 +40,7 @@ const Lists: React.FC = () => {
           <input type="text" name="name" />
           <button type="submit">submit</button>
         </form>
-      </div>
+      </div> */}
     </div>
   );
 };

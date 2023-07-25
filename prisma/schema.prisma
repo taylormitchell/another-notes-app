@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.sqlite"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -24,8 +24,8 @@ model Note {
   parentNote   Note?  @relation("ParentNote", fields: [parentNoteId], references: [id])
   childNotes   Note[] @relation("ParentNote")
 
-  relatedNotes       NoteToRelatedNotes[] @relation("RelatedNotes")
-  NoteToRelatedNotes NoteToRelatedNotes[]
+  relatedNotes    Note[] @relation("RelatedNotes")
+  backlinkedNotes Note[] @relation("RelatedNotes")
 }
 
 model List {
@@ -44,13 +44,4 @@ model NoteToRelatedLists {
   list   List @relation(fields: [listId], references: [id])
 
   @@id([noteId, listId])
-}
-
-model NoteToRelatedNotes {
-  noteId        Int
-  relatedNoteId Int
-  note          Note @relation("RelatedNotes", fields: [noteId], references: [id])
-  relatedNote   Note @relation(fields: [relatedNoteId], references: [id])
-
-  @@id([noteId, relatedNoteId])
 }

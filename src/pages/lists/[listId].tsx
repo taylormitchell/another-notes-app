@@ -1,30 +1,36 @@
 // pages/list/[id].tsx
 import { useRouter } from "next/router";
-import { Note, useGetListQuery } from "../../types/graphql";
 import Link from "next/link";
+import { ListWithChildren } from "../../../types";
+import { Note } from "@prisma/client";
+import axios from "axios";
+import { getListResponse } from "../api/lists/[id]";
+import { useQuery } from "react-query";
 
-// /list/[id].tsx
+async function getListById(id: number): Promise<ListWithChildren> {
+  const { data } = await axios.get<getListResponse>(`/api/lists/${id}`);
+  if (!data) throw new Error("No data");
+  if (data.error) throw new Error(data.error);
+  return data.value;
+}
+
 const List = () => {
   const router = useRouter();
   const id = parseInt(typeof router.query.listId === "string" ? router.query.listId : "-1");
-  console.log(id);
 
-  const { loading, error, data } = useGetListQuery({
-    variables: { id },
-  });
+  const { data: list, error, isLoading } = useQuery(["list", id], () => getListById(id));
 
-  if (loading) return <p>Loading...</p>;
+  if (isLoading) return <p>Loading...</p>;
   if (error) {
     console.error(error);
     return (
       <div>
         <p>Error :(</p>
-        <p>{error.message}</p>
+        <p>{String(error)}</p>
       </div>
     );
   }
 
-  const list = data.getList;
   return (
     <div>
       <h2>{list.name}</h2>

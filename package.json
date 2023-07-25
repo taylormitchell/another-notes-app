@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently 'nodemon --exec \"npm run generate-types\" --watch ./pages/api/schema.graphql' 'next dev'",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-types": "graphql-codegen --config codegen.yml"
+    "migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@apollo/client": "^3.7.17",
@@ -17,6 +17,7 @@
     "apollo-server": "^3.12.0",
     "apollo-server-micro": "^3.12.0",
     "autoprefixer": "^10.4.14",
+    "axios": "^1.4.0",
     "express": "^4.18.2",
     "graphql": "^16.7.1",
     "graphql-scalars": "^1.22.2",
@@ -26,6 +27,7 @@
     "prisma": "^4.16.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-query": "^3.39.3",
     "sqlite3": "^5.1.6",
     "tailwindcss": "^3.3.2"
   },
