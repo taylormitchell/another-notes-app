@@ -8,28 +8,49 @@ generator client {
 }
 
 model Note {
-  id         Int          @id @default(autoincrement())
-  text       String
-  author     String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  lists      List[]       @relation("NoteToList")
-  NoteToList NoteToList[]
+  id        Int      @id @default(autoincrement())
+  text      String
+  author    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentListId Int?
+  parentList   List? @relation(fields: [parentListId], references: [id])
+
+  relatedLists       List[]               @relation("NoteToList")
+  NoteToRelatedLists NoteToRelatedLists[]
+
+  parentNoteId Int?
+  parentNote   Note?  @relation("ParentNote", fields: [parentNoteId], references: [id])
+  childNotes   Note[] @relation("ParentNote")
+
+  relatedNotes       NoteToRelatedNotes[] @relation("RelatedNotes")
+  NoteToRelatedNotes NoteToRelatedNotes[]
 }
 
 model List {
-  id         Int          @id @default(autoincrement())
-  name       String
-  createdAt  DateTime     @default(now())
-  notes      Note[]       @relation("NoteToList")
-  NoteToList NoteToList[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  createdAt          DateTime             @default(now())
+  notes              Note[]               @relation("NoteToList")
+  NoteToRelatedLists NoteToRelatedLists[]
+  Note               Note[]
 }
 
-model NoteToList {
+model NoteToRelatedLists {
   noteId Int
   listId Int
   note   Note @relation(fields: [noteId], references: [id])
   list   List @relation(fields: [listId], references: [id])
 
   @@id([noteId, listId])
+}
+
+model NoteToRelatedNotes {
+  noteId        Int
+  relatedNoteId Int
+  note          Note @relation("RelatedNotes", fields: [noteId], references: [id])
+  relatedNote   Note @relation(fields: [relatedNoteId], references: [id])
+
+  @@id([noteId, relatedNoteId])
 }
