@@ -3,7 +3,7 @@ import { getNoteResponse } from "../api/notes/[id]";
 import axios from "axios";
 import { useQuery } from "react-query";
 
-async function getNoteById(id: number) {
+async function getNoteById(id: string) {
   const { data } = await axios.get<getNoteResponse>(`/api/notes/${id}`);
   if (!data) throw new Error("No data");
   if (data.error) throw new Error(data.error);
@@ -12,7 +12,8 @@ async function getNoteById(id: number) {
 
 export default () => {
   const router = useRouter();
-  const id = parseInt(typeof router.query.noteId === "string" ? router.query.noteId : "-1");
+  const noteId = router.query.noteId;
+  const id = Array.isArray(noteId) ? noteId[0] : noteId;
 
   const { data: note, error, isLoading } = useQuery(["note", id], () => getNoteById(id));
 

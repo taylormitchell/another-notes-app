@@ -44,26 +44,28 @@ const BottomNav = () => {
     <>
       <div className="bg-white shadow-lg">
         {/* full width text input with "submit" button on right side. uses a form */}
-        <div className="flex justify-between px-2 py-3 mx-auto max-w-screen-xl">
-          <div className="flex-grow">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          <div className="flex items-center">
             <input
+              className="flex-grow px-4 py-2 text-gray-700 bg-gray-200 border-2 border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:border-blue-500"
               type="text"
+              name="text"
               value={text}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="Search..."
               onChange={(e) => setText(e.target.value)}
-              onSubmit={handleSubmit}
             />
-          </div>
-          <div className="flex items-center ml-2">
             <button
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-500 rounded-md"
-              onClick={handleSubmit}
+              className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-400 focus:outline-none"
+              type="submit"
             >
               Submit
             </button>
           </div>
-        </div>
+        </form>
         <div className="px-2 py-3 mx-auto max-w-screen-xl">
           <div className="flex justify-between">
             {navItems.map((item) => (

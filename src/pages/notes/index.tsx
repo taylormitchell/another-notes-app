@@ -5,7 +5,7 @@ import axios from "axios";
 import { NoteWithRelations } from "../../../types";
 import { useQuery } from "react-query";
 
-async function fetchNotes(): Promise<NoteWithRelations[]> {
+export async function fetchNotes(): Promise<NoteWithRelations[]> {
   const { data } = await axios.get<getNotesResponse>("/api/notes");
   if (!data) throw new Error("No data");
   if (data.error) throw new Error(data.error);

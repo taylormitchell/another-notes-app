@@ -5,7 +5,7 @@ import axios from "axios";
 import { getListsResponse } from "../api/lists";
 import { useQuery } from "react-query";
 
-async function getLists(): Promise<List[]> {
+export async function getLists(): Promise<List[]> {
   const { data } = await axios.get<getListsResponse>("/api/lists");
   if (!data) throw new Error("No data");
   if (data.error) throw new Error(data.error);
