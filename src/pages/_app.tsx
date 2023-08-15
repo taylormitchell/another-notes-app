@@ -8,8 +8,8 @@ const queryClient = new QueryClient();
 const App = ({ Component, pageProps }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col min-h-screen">
-        <div className="flex-grow">
+      <div id="app" className="flex flex-col">
+        <div className="flex-grow overflow-y-auto">
           <Component {...pageProps} />
         </div>
         <BottomNav />

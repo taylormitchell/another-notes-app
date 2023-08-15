@@ -13,7 +13,7 @@ async function fetchNotes(): Promise<NoteWithRelations[]> {
 }
 
 const Notes: React.FC = () => {
-  const { data: notes, error, isLoading } = useQuery("notes", fetchNotes);
+  const { data: notes, error, isLoading, refetch } = useQuery("notes", fetchNotes);
 
   if (error) return <p>Error :(</p>;
   if (isLoading) return <p>Loading...</p>;

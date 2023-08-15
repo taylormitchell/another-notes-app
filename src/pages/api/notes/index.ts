@@ -7,6 +7,7 @@ import { z } from "zod";
 export type getNotesResponse = ResponseBody<NoteWithRelations[]>;
 export type postNoteResponse = ResponseBody<NoteWithRelations>;
 const postNotesSchema = z.object({
+  id: z.string().optional(),
   text: z.string(),
   author: z.string(),
 });
@@ -16,9 +17,9 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   try {
     if (req.method === "POST") {
       let body: postNoteResponse;
-      const { text, author } = postNotesSchema.parse(req.body);
+      const { id, text, author } = postNotesSchema.parse(req.body);
       const note = await prisma.note.create({
-        data: { text, author },
+        data: { id, text, author },
         include: { relatedLists: true, relatedNotes: true },
       });
       body = { value: note };

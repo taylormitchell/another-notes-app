@@ -13,7 +13,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   let body: getNoteResponse;
   try {
     const note = await prisma.note.findUnique({
-      where: { id: Number(noteId) },
+      where: { id: noteId },
       include: { relatedLists: true, relatedNotes: true },
     });
     body = { value: note };

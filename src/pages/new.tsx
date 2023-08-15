@@ -4,9 +4,10 @@ import axios from "axios";
 import lists from "./lists";
 import { NoteWithRelations } from "../../types";
 import { postNotesRequest } from "./api/notes";
+import { useAuth } from "../components/useAuth";
 // import { useCreateNoteMutation } from "../types/graphql";
 
-async function createNote(props: postNotesRequest): Promise<NoteWithRelations> {
+export async function createNote(props: postNotesRequest): Promise<NoteWithRelations> {
   const { data } = await axios.post<postNoteResponse>("/api/notes", props);
   if (!data) throw new Error("No data");
   if (data.error) throw new Error(data.error);
@@ -14,6 +15,7 @@ async function createNote(props: postNotesRequest): Promise<NoteWithRelations> {
 }
 
 export default () => {
+  const { user } = useAuth();
   // form to create a new note
   return (
     <div>
@@ -21,7 +23,7 @@ export default () => {
         onSubmit={(e) => {
           e.preventDefault();
           const text = (e.target as any).text.value;
-          createNote({ text, author: "Taylor" });
+          createNote({ text, author: user.id });
           e.currentTarget.reset();
         }}
       >
