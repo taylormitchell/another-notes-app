@@ -12,12 +12,23 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   }
   let body: getNoteResponse;
   try {
-    const note = await prisma.note.findUnique({
-      where: { id: noteId },
-      include: { relatedLists: true, relatedNotes: true },
-    });
-    body = { value: note };
-    return res.json(body);
+    if (req.method === "GET") {
+      const note = await prisma.note.findUnique({
+        where: { id: noteId },
+        include: { relatedLists: true, relatedNotes: true },
+      });
+      body = { value: note };
+      return res.json(body);
+    } else if (req.method === "PUT") {
+      const { text } = req.body;
+      const note = await prisma.note.update({
+        where: { id: noteId },
+        data: { text },
+        include: { relatedLists: true, relatedNotes: true },
+      });
+      body = { value: note };
+      return res.json(body);
+    }
   } catch (e) {
     console.error(e);
     body = { error: e instanceof Error ? e.message : "Unknown error" };
