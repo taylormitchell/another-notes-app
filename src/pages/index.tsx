@@ -1,6 +1,6 @@
 import React from "react";
-import Notes from "./notes";
 import Head from "next/head";
+import Link from "next/link";
 
 function App() {
   return (
@@ -10,7 +10,11 @@ function App() {
       </Head>
       <div>
         <h2>Another note taking app</h2>
-        <Notes />
+        <ul>
+          <li>
+            <Link href="/tags">Tags</Link>
+          </li>
+        </ul>
       </div>
     </>
   );

@@ -3,8 +3,9 @@ import router, { useRouter } from "next/router";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { supabase } from "../../lib/supabase";
 import { uuid } from "../../lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { generateKeyBetween } from "fractional-indexing";
+import e from "express";
 
 // sort ascending by position and then by created_at
 function sortNotes(
@@ -21,6 +22,7 @@ const Tag = () => {
   const router = useRouter();
   const tagId = router.query.tagId;
   const queryClient = useQueryClient();
+  const [nextSelected, setNextSelected] = useState<string>("");
 
   const { data: tag, isLoading } = useQuery(
     ["tag", tagId],
@@ -83,6 +85,41 @@ const Tag = () => {
     }
   );
 
+  const deleteNote = useMutation(
+    async (id: string) => {
+      await supabase.from("notes").delete().match({ id });
+    },
+    {
+      onMutate: (id) => {
+        const notes = queryClient.getQueryData(["tagNotes", tagId]) as any[];
+        const updatedNotes = notes.filter((n) => n.id !== id);
+        queryClient.setQueryData(["tagNotes", tagId], updatedNotes);
+      },
+    }
+  );
+
+  const updateTagName = useMutation(
+    async (name: string) => {
+      await supabase.from("tags").update({ name }).match({ id: tagId });
+    },
+    {
+      onMutate: (name) => {
+        const tag = queryClient.getQueryData(["tag", tagId]) as any;
+        queryClient.setQueryData(["tag", tagId], { ...tag, name });
+      },
+    }
+  );
+
+  useEffect(() => {
+    if (nextSelected === "") return;
+    setTimeout(() => {
+      const el = document.querySelector(`[data-id="${nextSelected}"] .content`) as HTMLInputElement;
+      if (!el) return;
+      el.focus();
+      setNextSelected("");
+    }, 0);
+  }, [nextSelected]);
+
   // Create a new note if there are no notes
   useEffect(() => {
     if (notes === undefined || notes.length > 0) return;
@@ -95,40 +132,65 @@ const Tag = () => {
   const sortedNotes = notes.sort(sortNotes);
 
   return (
-    <div>
-      <h1>Tag: {tag.name}</h1>
-      <h2>Notes:</h2>
-      {sortedNotes.map((note) => (
-        <div className="border border-black" key={note.id}>
-          {/* Use an input area for the content, which is set to the current, and mutates the note whenever the input is submitted or blurred*/}
-          <span>
-            <form
-              onSubmit={(e) => {
+    <div className="w100">
+      <div>
+        <span>Tag: </span>
+        <span
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={(e) => {
+            const name = e.currentTarget.textContent;
+            updateTagName.mutate(name);
+          }}
+        >
+          {tag.name}
+        </span>
+      </div>
+      <div className="flex flex-col align-center">
+        <button
+          onClick={async (e) => {
+            e.preventDefault();
+            const id = uuid();
+            const position = generateKeyBetween(null, sortedNotes[0]?.position);
+            createNote.mutate({ id, content: "", position });
+            setNextSelected(id);
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          +
+        </button>
+        {sortedNotes.map((note, i) => (
+          <div key={note.id} data-id={note.id} className="flex flex-col align-center">
+            <div className="flex flex-row w-full">
+              <div
+                className="border border-black flex-grow content"
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  const content = e.currentTarget.textContent;
+                  updateNote.mutate({ id: note.id, content });
+                }}
+                dangerouslySetInnerHTML={{ __html: note.content }}
+              />
+              <button className="flex-shrink-0 w-8" onClick={() => deleteNote.mutate(note.id)}>
+                x
+              </button>
+            </div>
+            <button
+              onClick={async (e) => {
                 e.preventDefault();
-                updateNote.mutate({ id: note.id, content: e.currentTarget.content.value });
+                const id = uuid();
+                const position = generateKeyBetween(note.position, sortedNotes[i + 1]?.position);
+                createNote.mutate({ id, content: "", position });
+                setNextSelected(id);
               }}
-              onBlur={(e) => {
-                e.preventDefault();
-                updateNote.mutate({ id: note.id, content: e.currentTarget.content.value });
-              }}
+              onMouseDown={(e) => e.preventDefault()}
             >
-              <input type="text" defaultValue={note.content} id="content" />
-            </form>
-            <span>pos: {note.position}</span>
-          </span>
-        </div>
-      ))}
-      <button
-        onClick={async () => {
-          createNote.mutate({
-            id: uuid(),
-            content: "",
-            position: generateKeyBetween(sortedNotes.slice(-1)[0].position, null),
-          });
-        }}
-      >
-        Create new note
-      </button>
+              +
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
