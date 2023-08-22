@@ -5,13 +5,8 @@ import { createNote } from "../pages/new";
 import { useQueryClient, useMutation } from "react-query";
 import { Note } from "@prisma/client";
 import { v4 as uuid } from "uuid";
-
-const navItems = [
-  { name: "Lists", path: "/lists" },
-  { name: "Notes", path: "/notes" },
-  { name: "Create", path: "/new" },
-  { name: "Search", path: "/search" },
-];
+import { supabase } from "../lib/supabase";
+import { useRouter } from "next/router";
 
 const BottomNav = () => {
   const [text, setText] = useState("");
@@ -20,26 +15,20 @@ const BottomNav = () => {
   const notesQuery = queryClient.getQueryData<Note[]>("notes");
   const [showNav, setShowNav] = useState(true);
 
-  const mutation = useMutation(createNote, {
-    // Optimistic update
-    onMutate: (newNote) => {
-      // Update the cache with the optimistic response
-      queryClient.setQueryData("notes", [...notesQuery, newNote]);
+  const router = useRouter();
+  // create a new note
+  const createTag = useMutation(
+    async (tag: { id: string; name: string }) => {
+      await supabase.from("tags").insert(tag);
+      return tag;
     },
-    // Callback to refetch notes after a successful mutation
-    onSuccess: () => {
-      queryClient.invalidateQueries("notes");
-    },
-  });
-
-  const handleSubmit = () => {
-    mutation.mutate({
-      id: uuid(),
-      text,
-      author: user.id,
-    });
-    setText("");
-  };
+    {
+      onMutate: (tag) => {
+        const tags = (queryClient.getQueryData("tags") as any[]) ?? [];
+        queryClient.setQueryData("tags", [...tags, tag]);
+      },
+    }
+  );
 
   return (
     <>
@@ -49,7 +38,17 @@ const BottomNav = () => {
           bottom: 0,
         }}
       >
-        <form
+        <button
+          onClick={() => {
+            const id = uuid();
+            createTag.mutate({ id, name: new Date().getTime().toString() });
+            router.push(`/tags/${id}`);
+          }}
+        >
+          Create new tag
+        </button>
+
+        {/* <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit();
@@ -88,6 +87,7 @@ const BottomNav = () => {
             </div>
           </div>
         )}
+       */}
       </div>
     </>
   );
