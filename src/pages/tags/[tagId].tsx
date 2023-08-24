@@ -1,11 +1,9 @@
-import error from "next/error";
-import router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { supabase } from "../../lib/supabase";
 import { uuid } from "../../lib/utils";
 import { useEffect, useState } from "react";
 import { generateKeyBetween } from "fractional-indexing";
-import e from "express";
 
 // sort ascending by position and then by created_at
 function sortNotes(
@@ -44,12 +42,15 @@ const Tag = () => {
         .order("position", { ascending: true });
       if (error) throw error;
       console.log({ data });
-      return data.map((d) => ({
-        id: d.note_id,
-        position: d.position,
-        content: d.note.content,
-        created_at: d.note.created_at,
-      }));
+      return data.map((d) => {
+        const note = Array.isArray(d.note) ? d.note[0] : d.note;
+        return {
+          id: d.note_id,
+          position: d.position,
+          content: note.content,
+          created_at: note.created_at,
+        };
+      });
     },
     { enabled: !!tagId }
   );
