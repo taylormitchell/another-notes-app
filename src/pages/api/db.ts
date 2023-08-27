@@ -3,14 +3,7 @@ import invariant from "tiny-invariant";
 
 export default async function handler(req: any, res: any) {
   console.log("req.body", req.body);
-  // invariant(req.body instanceof Object, "req.body must be an object");
-  // let queries = [];
-  // if (req.body.transaction) {
-  //   queries = req.body.transaction;
-  // } else {
-  //   queries = [req.body];
-  // }
-  const queries = req.body;
+  const statements = req.body;
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
   });
@@ -19,8 +12,8 @@ export default async function handler(req: any, res: any) {
     await client.connect();
     await client.query("BEGIN");
     let lastResult;
-    for (let { query, params } of queries) {
-      lastResult = await client.query(query, params);
+    for (let stm of statements) {
+      lastResult = await client.query(stm.query, stm.params ?? []);
     }
     await client.query("COMMIT");
     res.status(200).json(lastResult.rows); // Send the result of the last query back as response

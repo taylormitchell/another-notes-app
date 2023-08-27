@@ -1,199 +1,216 @@
-import { useRouter } from "next/router";
+import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { supabase } from "../../lib/supabase";
-import { uuid } from "../../lib/utils";
-import { useEffect, useState } from "react";
 import { generateKeyBetween } from "fractional-indexing";
+import { uuid } from "../../lib/utils";
+import { useRouter } from "next/router";
 
-// sort ascending by position and then by created_at
-function sortNotes(
-  a: { position: string; created_at: Date },
-  b: { position: string; created_at: Date }
-) {
-  if (a.position === b.position) {
-    return a.created_at > b.created_at ? 1 : -1;
-  }
-  return a.position > b.position ? 1 : -1;
-}
-
-const Tag = () => {
+export default function Tag() {
   const router = useRouter();
   const tagId = router.query.tagId;
   const queryClient = useQueryClient();
-  const [nextSelected, setNextSelected] = useState<string>("");
 
-  const { data: tag, isLoading } = useQuery(
-    ["tag", tagId],
-    async () => {
-      const { data, error } = await supabase.from("tags").select("*").filter("id", "eq", tagId);
-      if (error) throw error;
-      return data[0];
-    },
-    { enabled: !!tagId }
-  );
+  const { data: tag } = useQuery<{ id: string; name: string }>(["tag", tagId], async () => {
+    const result = await axios.post("/api/db", [
+      {
+        query: `select * from tag where id = $1`,
+        params: [tagId],
+      },
+    ]);
+    return result.data[0];
+  });
 
-  const { data: notes } = useQuery(
-    ["tagNotes", tagId],
-    async () => {
-      const { data, error } = await supabase
-        .from("tag_entries")
-        .select("note_id, position, note:notes(id, content, created_at)")
-        .eq("tag_id", tagId)
-        .order("position", { ascending: true });
-      if (error) throw error;
-      console.log({ data });
-      return data.map((d) => {
-        const note = Array.isArray(d.note) ? d.note[0] : d.note;
-        return {
-          id: d.note_id,
-          position: d.position,
-          content: note.content,
-          created_at: note.created_at,
-        };
-      });
-    },
-    { enabled: !!tagId }
-  );
-
-  const createNote = useMutation(
-    async ({ id, content, position }: { id: string; content: string; position: string }) => {
-      await supabase.from("notes").insert({ id, content });
-      await supabase.from("tag_entries").insert({ tag_id: tagId, note_id: id, position });
+  const { mutate: updateTagName } = useMutation(
+    async ({ id, name }: { id: string; name: string }) => {
+      await axios.post("/api/db", [
+        {
+          query: `update tag set name = $1 where id = $2`,
+          params: [name, id],
+        },
+      ]);
     },
     {
-      onMutate: (note) => {
-        const notes = queryClient.getQueryData(["tagNotes", tagId]) as any[];
-        queryClient.setQueryData(["tagNotes", tagId], [...notes, note]);
+      onMutate: (tag) => {
+        queryClient.setQueryData(["tag", tagId], tag);
+        queryClient.invalidateQueries("tags");
       },
     }
   );
 
-  const updateNote = useMutation(
-    async ({ id, content }: { id: string; content: string }) => {
-      await supabase.from("notes").update({ content }).match({ id });
+  const { data: notes, error } = useQuery<
+    { id: string; content: string; created_at: string; position: string }[],
+    any
+  >(["note", tagId], async () => {
+    const result = await axios.post("/api/db", [
+      {
+        query: `select note.*, tag_entries.position from note join tag_entries on note.id = tag_entries.note_id where tag_entries.tag_id = $1`,
+        params: [tagId],
+      },
+    ]);
+    return result.data;
+  });
+
+  const { mutate: createNote } = useMutation(
+    async (note: { id: string; content: string; position: string }) => {
+      await axios.post("/api/db", [
+        {
+          query: `insert into note (id, content) values ($1, $2)`,
+          params: [note.id, note.content],
+        },
+        {
+          query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
+          params: [tagId, note.id, note.position],
+        },
+      ]);
     },
     {
       onMutate: (note) => {
-        const notes = queryClient.getQueryData(["tagNotes", tagId]) as any[];
+        const notes = queryClient.getQueryData(["note", tagId]) as any[];
+        queryClient.setQueryData(["note", tagId], [...notes, note]);
+      },
+      onError: () => {
+        queryClient.invalidateQueries(["note", tagId]);
+      },
+    }
+  );
+
+  const { mutate: updateNote } = useMutation(
+    async ({ id, content }: { id: string; content: string }) => {
+      await axios.post("/api/db", [
+        {
+          query: `update note set content = $1 where id = $2`,
+          params: [content, id],
+        },
+      ]);
+    },
+    {
+      onMutate: (note) => {
+        const notes = queryClient.getQueryData(["note", tagId]) as any[];
         const updatedNotes = notes.map((n) => {
           if (n.id === note.id) {
             return { ...n, ...note };
           }
           return n;
         });
-        queryClient.setQueryData(["tagNotes", tagId], updatedNotes);
+        queryClient.setQueryData(["note", tagId], updatedNotes);
       },
     }
   );
 
-  const deleteNote = useMutation(
+  const { mutate: updatePosition } = useMutation(
+    async ({ id, position }: { id: string; position: string }) => {
+      await axios.post("/api/db", [
+        {
+          query: `update tag_entries set position = $1 where note_id = $2`,
+          params: [position, id],
+        },
+      ]);
+    },
+    {
+      onMutate: (note) => {
+        const notes = queryClient.getQueryData(["note", tagId]) as any[];
+        const updatedNotes = notes.map((n) => {
+          if (n.id === note.id) {
+            return { ...n, ...note };
+          }
+          return n;
+        });
+        queryClient.setQueryData(["note", tagId], updatedNotes);
+      },
+    }
+  );
+
+  const { mutate: deleteNote } = useMutation(
     async (id: string) => {
-      await supabase.from("notes").delete().match({ id });
+      await axios.post("/api/db", [
+        {
+          query: `delete from note where id = $1`,
+          params: [id],
+        },
+      ]);
     },
     {
       onMutate: (id) => {
-        const notes = queryClient.getQueryData(["tagNotes", tagId]) as any[];
+        const notes = queryClient.getQueryData(["note", tagId]) as any[];
         const updatedNotes = notes.filter((n) => n.id !== id);
-        queryClient.setQueryData(["tagNotes", tagId], updatedNotes);
+        queryClient.setQueryData(["note", tagId], updatedNotes);
       },
     }
   );
 
-  const updateTagName = useMutation(
-    async (name: string) => {
-      await supabase.from("tags").update({ name }).match({ id: tagId });
-    },
-    {
-      onMutate: (name) => {
-        const tag = queryClient.getQueryData(["tag", tagId]) as any;
-        queryClient.setQueryData(["tag", tagId], { ...tag, name });
-      },
+  if (!notes || !tag) return null;
+  if (error) return <div>{error}</div>;
+
+  // sort by position and created_at
+  const sortedNotes = notes.sort((a, b) => {
+    if (a.position === b.position) {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     }
-  );
-
-  useEffect(() => {
-    if (nextSelected === "") return;
-    setTimeout(() => {
-      const el = document.querySelector(`[data-id="${nextSelected}"] .content`) as HTMLInputElement;
-      if (!el) return;
-      el.focus();
-      setNextSelected("");
-    }, 0);
-  }, [nextSelected]);
-
-  // Create a new note if there are no notes
-  useEffect(() => {
-    if (notes === undefined || notes.length > 0) return;
-    const lastPos = notes.sort(sortNotes).slice(-1)[0]?.position ?? null;
-    createNote.mutate({ id: uuid(), content: "", position: generateKeyBetween(null, lastPos) });
-  }, [notes]);
-
-  if (isLoading || !tag || !notes) return null;
-
-  const sortedNotes = notes.sort(sortNotes);
+    return a.position > b.position ? 1 : -1;
+  });
+  const lastPosition = sortedNotes.slice(-1)[0]?.position ?? null;
 
   return (
-    <div className="w100">
-      <div>
-        <span>Tag: </span>
-        <span
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => {
-            const name = e.currentTarget.textContent;
-            updateTagName.mutate(name);
-          }}
-        >
-          {tag.name}
-        </span>
-      </div>
-      <div className="flex flex-col align-center">
-        <button
-          onClick={async (e) => {
-            e.preventDefault();
-            const id = uuid();
-            const position = generateKeyBetween(null, sortedNotes[0]?.position);
-            createNote.mutate({ id, content: "", position });
-            setNextSelected(id);
-          }}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          +
-        </button>
-        {sortedNotes.map((note, i) => (
-          <div key={note.id} data-id={note.id} className="flex flex-col align-center">
-            <div className="flex flex-row w-full">
+    // center everything
+    <div className="max-w-2xl mx-auto flex flex-col items-center">
+      <h1
+        className="text-2xl font-bold text-center"
+        contentEditable
+        suppressContentEditableWarning
+        onBlur={(e) => {
+          const name = e.currentTarget.textContent;
+          updateTagName({ id: tag.id, name });
+        }}
+        dangerouslySetInnerHTML={{ __html: tag.name }}
+      />
+      <ul className="space-y-4">
+        {notes.map((note) => (
+          <li
+            key={note.id}
+            className="max-w-lg mx-auto border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
+            draggable="true"
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/plain", note.id);
+            }}
+            onDrop={(e) => {
+              // Swap positions
+              e.preventDefault();
+              const draggedNoteId = e.dataTransfer.getData("text/plain");
+              const draggedNote = notes.find((n) => n.id === draggedNoteId);
+              updatePosition({ id: draggedNoteId, position: note.position });
+              updatePosition({ id: note.id, position: draggedNote.position });
+            }}
+          >
+            <div className="rounded overflow-hidden shadow-md bg-white">
               <div
-                className="border border-black flex-grow content"
+                className="p-4"
                 contentEditable
                 suppressContentEditableWarning
                 onBlur={(e) => {
                   const content = e.currentTarget.textContent;
-                  updateNote.mutate({ id: note.id, content });
+                  updateNote({ id: note.id, content });
+                }}
+                // delete on backspace if empty
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && e.currentTarget.textContent === "") {
+                    e.preventDefault();
+                    deleteNote(note.id);
+                  }
                 }}
                 dangerouslySetInnerHTML={{ __html: note.content }}
               />
-              <button className="flex-shrink-0 w-8" onClick={() => deleteNote.mutate(note.id)}>
-                x
-              </button>
             </div>
-            <button
-              onClick={async (e) => {
-                e.preventDefault();
-                const id = uuid();
-                const position = generateKeyBetween(note.position, sortedNotes[i + 1]?.position);
-                createNote.mutate({ id, content: "", position });
-                setNextSelected(id);
-              }}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              +
-            </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
+      <button
+        className="w-8 border border-black rounded-md my-4"
+        onClick={() =>
+          createNote({ id: uuid(), content: "", position: generateKeyBetween(lastPosition, null) })
+        }
+      >
+        +
+      </button>
+      {/* <div>{JSON.stringify(notes, null, 2)}</div> */}
     </div>
   );
-};
-
-export default Tag;
+}

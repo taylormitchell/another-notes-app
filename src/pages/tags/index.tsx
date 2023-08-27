@@ -1,20 +1,29 @@
+import axios from "axios";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "react-query";
-import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { uuid } from "../../lib/utils";
 
+type Tag = {
+  id: string;
+  name: string;
+};
+
 export default function Tags() {
   const queryClient = useQueryClient();
-  // react query for tags using supabase
-  const { data: tags, isLoading } = useQuery("tags", async () => {
-    const { data, error } = await supabase.from("tags").select("*");
-    if (error) throw error;
+
+  const { data: tags, isLoading } = useQuery<Tag[]>("tags", async () => {
+    const { data } = await axios.post("/api/db", [{ query: `SELECT * FROM tag` }]);
     return data;
   });
 
   const deleteTag = useMutation(
     async (id: string) => {
-      await supabase.from("tags").delete().match({ id });
+      await axios.post("/api/db", [
+        {
+          query: `DELETE FROM tag WHERE id = $1`,
+          params: [id],
+        },
+      ]);
     },
     {
       onMutate: (id) => {
@@ -27,7 +36,12 @@ export default function Tags() {
 
   const createTag = useMutation(
     async (tag: { id: string; name: string }) => {
-      await supabase.from("tags").insert(tag);
+      await axios.post("/api/db", [
+        {
+          query: `INSERT INTO tag (id, name) VALUES ($1, $2)`,
+          params: [tag.id, tag.name],
+        },
+      ]);
       return tag;
     },
     {
@@ -39,6 +53,7 @@ export default function Tags() {
   );
 
   if (isLoading) return null;
+
   return (
     <div>
       <h1>Tags</h1>
