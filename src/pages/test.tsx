@@ -8,10 +8,12 @@ export default function Test() {
   const queryClient = useQueryClient();
 
   const { data: tag } = useQuery<{ id: string; name: string }>(["tag", tagId], async () => {
-    const result = await axios.post("/api/db", {
-      query: `select * from tag where id = $1`,
-      params: [tagId],
-    });
+    const result = await axios.post("/api/db", [
+      {
+        query: `select * from tag where id = $1`,
+        params: [tagId],
+      },
+    ]);
     return result.data[0];
   });
 
@@ -19,40 +21,47 @@ export default function Test() {
     { id: string; content: string; created_at: string; position: string }[],
     any
   >(["note", tagId], async () => {
-    const result = await axios.post("/api/db", {
-      query: `select note.*, tag_entries.position from note join tag_entries on note.id = tag_entries.note_id where tag_entries.tag_id = $1`,
-      params: [tagId],
-    });
+    const result = await axios.post("/api/db", [
+      {
+        query: `select note.*, tag_entries.position from note join tag_entries on note.id = tag_entries.note_id where tag_entries.tag_id = $1`,
+        params: [tagId],
+      },
+    ]);
     return result.data;
   });
 
   const { mutate: createNote } = useMutation(
     async (note: { id: string; content: string; position: string }) => {
-      // insert into note table
-      // insert into tag_entries table
-      await axios.post("/api/db", {
-        query: `insert into note (id, content) values ($1, $2)`,
-        params: [note.id, note.content],
-      });
-      await axios.post("/api/db", {
-        query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
-        params: [tagId, note.id, note.position],
-      });
+      await axios.post("/api/db", [
+        {
+          query: `insert into note (id, content) values ($1, $2)`,
+          params: [note.id, note.content],
+        },
+        {
+          query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
+          params: [tagId, note.id, note.position],
+        },
+      ]);
     },
     {
       onMutate: (note) => {
         const notes = queryClient.getQueryData(["note", tagId]) as any[];
         queryClient.setQueryData(["note", tagId], [...notes, note]);
       },
+      onError: () => {
+        queryClient.invalidateQueries(["note", tagId]);
+      },
     }
   );
 
   const { mutate: updateNote } = useMutation(
     async ({ id, content }: { id: string; content: string }) => {
-      await axios.post("/api/db", {
-        query: `update note set content = $1 where id = $2`,
-        params: [content, id],
-      });
+      await axios.post("/api/db", [
+        {
+          query: `update note set content = $1 where id = $2`,
+          params: [content, id],
+        },
+      ]);
     },
     {
       onMutate: (note) => {
@@ -68,13 +77,14 @@ export default function Test() {
     }
   );
 
-  // update position
   const { mutate: updatePosition } = useMutation(
     async ({ id, position }: { id: string; position: string }) => {
-      await axios.post("/api/db", {
-        query: `update tag_entries set position = $1 where note_id = $2`,
-        params: [position, id],
-      });
+      await axios.post("/api/db", [
+        {
+          query: `update tag_entries set position = $1 where note_id = $2`,
+          params: [position, id],
+        },
+      ]);
     },
     {
       onMutate: (note) => {
@@ -92,10 +102,12 @@ export default function Test() {
 
   const { mutate: deleteNote } = useMutation(
     async (id: string) => {
-      await axios.post("/api/db", {
-        query: `delete from note where id = $1`,
-        params: [id],
-      });
+      await axios.post("/api/db", [
+        {
+          query: `delete from note where id = $1`,
+          params: [id],
+        },
+      ]);
     },
     {
       onMutate: (id) => {
