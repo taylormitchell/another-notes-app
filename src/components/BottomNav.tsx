@@ -25,17 +25,16 @@ const BottomNav = () => {
   return (
     <>
       {/* equally spaced, buttons, grey */}
-      <div className="w-full h-16 bg-gray-100 fixed bottom-0 left-0">
+      {/* <div className="w-full h-16 bg-gray-100 fixed bottom-0 left-0"> */}
+      <div className="w-full h-16 bg-gray-100">
         <div className="flex justify-between items-center h-full px-4">
           <Link href="/tags">Tags</Link>
           <button
             onClick={() => {
-              const id = uuid();
-              createTag.mutate({ id, name: new Date().getTime().toString() });
-              router.push(`/tags/${id}`);
+              router.push(`/create`);
             }}
           >
-            Create new tag
+            Create
           </button>
         </div>
       </div>
