@@ -3,51 +3,51 @@ import { QueryClient, useMutation, useQuery, useQueryClient } from "react-query"
 import Link from "next/link";
 import { uuid } from "../../lib/utils";
 
-type Tag = {
+type List = {
   id: string;
   name: string;
 };
 
-export default function Tags() {
+export default function Lists() {
   const queryClient = useQueryClient();
 
-  const { data: tags, isLoading } = useQuery<Tag[]>("tags", async () => {
-    const { data } = await axios.post("/api/db", [{ query: `SELECT * FROM tag` }]);
+  const { data: lists, isLoading } = useQuery<List[]>("lists", async () => {
+    const { data } = await axios.post("/api/db", [{ query: `SELECT * FROM list` }]);
     return data;
   });
 
-  const deleteTag = useMutation(
+  const deleteList = useMutation(
     async (id: string) => {
       await axios.post("/api/db", [
         {
-          query: `DELETE FROM tag WHERE id = $1`,
+          query: `DELETE FROM list WHERE id = $1`,
           params: [id],
         },
       ]);
     },
     {
       onMutate: (id) => {
-        const tags = queryClient.getQueryData<any[]>("tags");
-        const updatedTags = tags.filter((t) => t.id !== id);
-        queryClient.setQueryData("tags", updatedTags);
+        const lists = queryClient.getQueryData<any[]>("lists");
+        const updatedLists = lists.filter((t) => t.id !== id);
+        queryClient.setQueryData("lists", updatedLists);
       },
     }
   );
 
-  const createTag = useMutation(
-    async (tag: { id: string; name: string }) => {
+  const createList = useMutation(
+    async (list: { id: string; name: string }) => {
       await axios.post("/api/db", [
         {
-          query: `INSERT INTO tag (id, name) VALUES ($1, $2)`,
-          params: [tag.id, tag.name],
+          query: `INSERT INTO list (id, name) VALUES ($1, $2)`,
+          params: [list.id, list.name],
         },
       ]);
-      return tag;
+      return list;
     },
     {
-      onMutate: (tag) => {
-        const tags = queryClient.getQueryData<any[]>("tags");
-        queryClient.setQueryData("tags", [...tags, tag]);
+      onMutate: (list) => {
+        const lists = queryClient.getQueryData<any[]>("lists");
+        queryClient.setQueryData("lists", [...lists, list]);
       },
     }
   );
@@ -56,16 +56,16 @@ export default function Tags() {
 
   return (
     <div>
-      <h1>Tags</h1>
+      <h1>Lists</h1>
       <ul>
-        {tags.map((tag) => (
-          <li key={tag.id}>
+        {lists.map((list) => (
+          <li key={list.id}>
             <span className="flex justify-between items-center">
-              <Link href={`/tags/${tag.id}`}>{tag.name}</Link>
+              <Link href={`/lists/${list.id}`}>{list.name}</Link>
               <button
                 className="w-8"
                 onClick={() => {
-                  deleteTag.mutate(tag.id);
+                  deleteList.mutate(list.id);
                 }}
               >
                 x
@@ -78,7 +78,7 @@ export default function Tags() {
         onClick={() => {
           const id = uuid();
           const name = new Date().getTime().toString();
-          createTag.mutate({ id, name });
+          createList.mutate({ id, name });
         }}
       >
         +

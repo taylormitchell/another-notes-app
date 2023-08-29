@@ -4,34 +4,34 @@ import { generateKeyBetween } from "fractional-indexing";
 import { uuid } from "../../lib/utils";
 import { useRouter } from "next/router";
 
-export default function Tag() {
+export default function List() {
   const router = useRouter();
-  const tagId = router.query.tagId;
+  const listId = router.query.listId;
   const queryClient = useQueryClient();
 
-  const { data: tag } = useQuery<{ id: string; name: string }>(["tag", tagId], async () => {
+  const { data: list } = useQuery<{ id: string; name: string }>(["list", listId], async () => {
     const result = await axios.post("/api/db", [
       {
-        query: `select * from tag where id = $1`,
-        params: [tagId],
+        query: `select * from list where id = $1`,
+        params: [listId],
       },
     ]);
     return result.data[0];
   });
 
-  const { mutate: updateTagName } = useMutation(
+  const { mutate: updateListName } = useMutation(
     async ({ id, name }: { id: string; name: string }) => {
       await axios.post("/api/db", [
         {
-          query: `update tag set name = $1 where id = $2`,
+          query: `update list set name = $1 where id = $2`,
           params: [name, id],
         },
       ]);
     },
     {
-      onMutate: (tag) => {
-        queryClient.setQueryData(["tag", tagId], tag);
-        queryClient.invalidateQueries("tags");
+      onMutate: (list) => {
+        queryClient.setQueryData(["list", listId], list);
+        queryClient.invalidateQueries("lists");
       },
     }
   );
@@ -39,11 +39,11 @@ export default function Tag() {
   const { data: notes, error } = useQuery<
     { id: string; content: string; created_at: string; position: string }[],
     any
-  >(["note", tagId], async () => {
+  >(["note", listId], async () => {
     const result = await axios.post("/api/db", [
       {
-        query: `select note.*, tag_entries.position from note join tag_entries on note.id = tag_entries.note_id where tag_entries.tag_id = $1`,
-        params: [tagId],
+        query: `select note.*, list_entries.position from note join list_entries on note.id = list_entries.note_id where list_entries.list_id = $1`,
+        params: [listId],
       },
     ]);
     return result.data;
@@ -57,18 +57,18 @@ export default function Tag() {
           params: [note.id, note.content],
         },
         {
-          query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
-          params: [tagId, note.id, note.position],
+          query: `insert into list_entries (list_id, note_id, position) values ($1, $2, $3)`,
+          params: [listId, note.id, note.position],
         },
       ]);
     },
     {
       onMutate: (note) => {
-        const notes = queryClient.getQueryData(["note", tagId]) as any[];
-        queryClient.setQueryData(["note", tagId], [...notes, note]);
+        const notes = queryClient.getQueryData(["note", listId]) as any[];
+        queryClient.setQueryData(["note", listId], [...notes, note]);
       },
       onError: () => {
-        queryClient.invalidateQueries(["note", tagId]);
+        queryClient.invalidateQueries(["note", listId]);
       },
     }
   );
@@ -84,14 +84,14 @@ export default function Tag() {
     },
     {
       onMutate: (note) => {
-        const notes = queryClient.getQueryData(["note", tagId]) as any[];
+        const notes = queryClient.getQueryData(["note", listId]) as any[];
         const updatedNotes = notes.map((n) => {
           if (n.id === note.id) {
             return { ...n, ...note };
           }
           return n;
         });
-        queryClient.setQueryData(["note", tagId], updatedNotes);
+        queryClient.setQueryData(["note", listId], updatedNotes);
       },
     }
   );
@@ -100,21 +100,21 @@ export default function Tag() {
     async ({ id, position }: { id: string; position: string }) => {
       await axios.post("/api/db", [
         {
-          query: `update tag_entries set position = $1 where note_id = $2`,
+          query: `update list_entries set position = $1 where note_id = $2`,
           params: [position, id],
         },
       ]);
     },
     {
       onMutate: (note) => {
-        const notes = queryClient.getQueryData(["note", tagId]) as any[];
+        const notes = queryClient.getQueryData(["note", listId]) as any[];
         const updatedNotes = notes.map((n) => {
           if (n.id === note.id) {
             return { ...n, ...note };
           }
           return n;
         });
-        queryClient.setQueryData(["note", tagId], updatedNotes);
+        queryClient.setQueryData(["note", listId], updatedNotes);
       },
     }
   );
@@ -130,14 +130,14 @@ export default function Tag() {
     },
     {
       onMutate: (id) => {
-        const notes = queryClient.getQueryData(["note", tagId]) as any[];
+        const notes = queryClient.getQueryData(["note", listId]) as any[];
         const updatedNotes = notes.filter((n) => n.id !== id);
-        queryClient.setQueryData(["note", tagId], updatedNotes);
+        queryClient.setQueryData(["note", listId], updatedNotes);
       },
     }
   );
 
-  if (!notes || !tag) return null;
+  if (!notes || !list) return null;
   if (error) return <div>{error}</div>;
 
   // sort by position and created_at
@@ -158,9 +158,9 @@ export default function Tag() {
         suppressContentEditableWarning
         onBlur={(e) => {
           const name = e.currentTarget.textContent;
-          updateTagName({ id: tag.id, name });
+          updateListName({ id: list.id, name });
         }}
-        dangerouslySetInnerHTML={{ __html: tag.name }}
+        dangerouslySetInnerHTML={{ __html: list.name }}
       />
       <ul className="space-y-4">
         {notes.map((note) => (

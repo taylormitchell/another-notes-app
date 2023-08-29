@@ -12,7 +12,7 @@ function App() {
         <h2>Another note taking app</h2>
         <ul>
           <li>
-            <Link href="/tags">Tags</Link>
+            <Link href="/lists">Lists</Link>
           </li>
         </ul>
       </div>

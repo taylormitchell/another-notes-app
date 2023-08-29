@@ -5,24 +5,24 @@
 // import { uuid } from "../lib/utils";
 // import { useRef, useState } from "react";
 
-// type Tag = {
+// type List = {
 //   id: string;
 //   name: string;
 // };
 
-// type TagWithLastPosition = Tag & { prev_last_position: string };
+// type ListWithLastPosition = List & { prev_last_position: string };
 
 // type Note = {
 //   id: string;
 //   content: string;
 //   created_at: string;
-//   positions: { [tagId: string]: string };
+//   positions: { [listId: string]: string };
 // };
 
 // // const prevLastPositions = [
-// //   { tagId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a0" },
-// //   { tagId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a1" },
-// //   { tagId: "b0b9c132-006c-4302-a3d1-f7254429808a", position: null },
+// //   { listId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a0" },
+// //   { listId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a1" },
+// //   { listId: "b0b9c132-006c-4302-a3d1-f7254429808a", position: null },
 // // ];
 
 // // const notes = [
@@ -31,8 +31,8 @@
 // //     content: "note 1",
 // //     created_at: "2021-01-01",
 // //     position: [
-// //       { tagId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a0" },
-// //       { tagId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a3" },
+// //       { listId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a0" },
+// //       { listId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a3" },
 // //     ],
 // //   },
 // //   {
@@ -40,29 +40,29 @@
 // //     content: "note 2",
 // //     created_at: "2021-01-02",
 // //     position: [
-// //       { tagId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a1" },
-// //       { tagId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a2" },
+// //       { listId: "64b9c132-006c-4302-a3d1-f7254429808a", position: "a1" },
+// //       { listId: "a0b9c132-006c-4302-a3d1-f7254429808a", position: "a2" },
 // //     ],
 // //   },
 // // ];
 
-// // export default function Create({ tagId = "64b9c132-006c-4302-a3d1-f7254429808a" }: { tagId: string }) {
+// // export default function Create({ listId = "64b9c132-006c-4302-a3d1-f7254429808a" }: { listId: string }) {
 // export default function Create() {
-//   const [selectedTags, setSelectedTags] = useState<string[]>([
+//   const [selectedLists, setSelectedLists] = useState<string[]>([
 //     "64b9c132-006c-4302-a3d1-f7254429808a",
 //   ]);
-//   console.log(selectedTags);
+//   console.log(selectedLists);
 //   const inputRef = useRef<HTMLInputElement>(null);
-//   const [newTag, setNewTag] = useState("");
+//   const [newList, setNewList] = useState("");
 //   const queryClient = useQueryClient();
 
-//   // Get all tags and, if they have any entries, the last positioned note in the tag_entries table
-//   const { data: allTags } = useQuery<{ [key: string]: TagWithLastPosition }>(
-//     "allTags",
+//   // Get all lists and, if they have any entries, the last positioned note in the list_entries table
+//   const { data: allLists } = useQuery<{ [key: string]: ListWithLastPosition }>(
+//     "allLists",
 //     async () => {
 //       const result = await axios.post("/api/db", [
 //         {
-//           query: `select tag.*, max(tag_entries.position) prev_last_position from tag left join tag_entries on tag.id = tag_entries.tag_id group by tag.id`,
+//           query: `select list.*, max(list_entries.position) prev_last_position from list left join list_entries on list.id = list_entries.list_id group by list.id`,
 //         },
 //       ]);
 //       return result.data.reduce((acc, { id, name, prev_last_position }) => {
@@ -73,12 +73,12 @@
 //   );
 
 //   const { data: notes, isLoading: notesLoading } = useQuery<Note[], any>(
-//     ["note", selectedTags[0]],
+//     ["note", selectedLists[0]],
 //     async () => {
 //       const result = await axios.post("/api/db", [
 //         {
-//           query: `select note.*, tag_entries.position from note join tag_entries on note.id = tag_entries.note_id where tag_entries.tag_id = $1`,
-//           params: [selectedTags[0]],
+//           query: `select note.*, list_entries.position from note join list_entries on note.id = list_entries.note_id where list_entries.list_id = $1`,
+//           params: [selectedLists[0]],
 //         },
 //       ]);
 //       return result.data.map((row) => {
@@ -86,7 +86,7 @@
 //           id: row.id,
 //           content: row.content,
 //           created_at: row.created_at,
-//           positions: { [selectedTags[0]]: row.position },
+//           positions: { [selectedLists[0]]: row.position },
 //         };
 //         return note;
 //       });
@@ -101,16 +101,16 @@
 //           query: `insert into note (id, content, created_at) values ($1, $2, $3)`,
 //           params: [note.id, note.content, note.created_at],
 //         },
-//         ...Object.entries(note.positions).map(([tagId, position]) => ({
-//           query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
-//           params: [tagId, note.id, position],
+//         ...Object.entries(note.positions).map(([listId, position]) => ({
+//           query: `insert into list_entries (list_id, note_id, position) values ($1, $2, $3)`,
+//           params: [listId, note.id, position],
 //         })),
 //       ]);
 //     },
 //     {
 //       onMutate: (note) => {
-//         const notes = queryClient.getQueryData(["note", selectedTags[0]]) as any[];
-//         queryClient.setQueryData(["note", selectedTags[0]], [...notes, note]);
+//         const notes = queryClient.getQueryData(["note", selectedLists[0]]) as any[];
+//         queryClient.setQueryData(["note", selectedLists[0]], [...notes, note]);
 //       },
 //     }
 //   );
@@ -126,14 +126,14 @@
 //     },
 //     {
 //       onMutate: (note) => {
-//         const notes = queryClient.getQueryData(["note", selectedTags[0]]) as any[];
+//         const notes = queryClient.getQueryData(["note", selectedLists[0]]) as any[];
 //         const updatedNotes = notes.map((n) => {
 //           if (n.id === note.id) {
 //             return { ...n, ...note };
 //           }
 //           return n;
 //         });
-//         queryClient.setQueryData(["note", selectedTags[0]], updatedNotes);
+//         queryClient.setQueryData(["note", selectedLists[0]], updatedNotes);
 //       },
 //     }
 //   );
@@ -149,24 +149,24 @@
 //     },
 //     {
 //       onMutate: (id) => {
-//         const notes = queryClient.getQueryData(["note", selectedTags[0]]) as any[];
+//         const notes = queryClient.getQueryData(["note", selectedLists[0]]) as any[];
 //         const updatedNotes = notes.filter((n) => n.id !== id);
-//         queryClient.setQueryData(["note", selectedTags[0]], updatedNotes);
+//         queryClient.setQueryData(["note", selectedLists[0]], updatedNotes);
 //       },
 //     }
 //   );
 
-//   const { mutate: addTag } = useMutation(
-//     async (tagId: string) => {
+//   const { mutate: addList } = useMutation(
+//     async (listId: string) => {
 //         await axios.post("/api/db", [
 //             {
-//             query: `insert into tag_entries (tag_id, note_id, position) values ($1, $2, $3)`,
-//             params: [tagId, notes[0].id, generateKeyBetween(null, null)],
+//             query: `insert into list_entries (list_id, note_id, position) values ($1, $2, $3)`,
+//             params: [listId, notes[0].id, generateKeyBetween(null, null)],
 //             },
 //         ]);
 //     }
 
-//   if (!allTags || notesLoading) return null;
+//   if (!allLists || notesLoading) return null;
 
 //   const sortedNotes = notes.sort((a, b) => {
 //     const aPos = Object.values(a.positions)[0];
@@ -178,10 +178,10 @@
 //   });
 
 //   // If notes have been added, the last position is the last note's position.
-//   // Otherwise, it's the tag's last position at load time.
+//   // Otherwise, it's the list's last position at load time.
 //   const lastPositions =
 //     sortedNotes.slice(-1)[0]?.positions ??
-//     Object.fromEntries(selectedTags.map((tagId) => [tagId, allTags[tagId].prev_last_position]));
+//     Object.fromEntries(selectedLists.map((listId) => [listId, allLists[listId].prev_last_position]));
 
 //   console.log({ sortedNotes, lastPositions });
 //   //   const lastPosition = sortedNotes.slice(-1)[0]?.position ?? null;
@@ -189,17 +189,17 @@
 //   return (
 //     <div className="max-w-2xl mx-auto flex flex-col items-center">
 //       <div>
-//         <h1>Tags</h1>
+//         <h1>Lists</h1>
 //         <div className="flex flex-row flex-wrap">
-//           {selectedTags
+//           {selectedLists
 //             .slice(1)
-//             .map((id) => allTags[id])
-//             .map((tag) => (
-//               <span className="bg-blue-200 rounded px-2 py-1 m-1 flex items-center" key={tag.id}>
-//                 {tag.name}
+//             .map((id) => allLists[id])
+//             .map((list) => (
+//               <span className="bg-blue-200 rounded px-2 py-1 m-1 flex items-center" key={list.id}>
+//                 {list.name}
 //                 <button
 //                   className="ml-2 text-sm text-red-500"
-//                   onClick={() => setSelectedTags((tags) => tags.filter((t) => t !== tag.id))}
+//                   onClick={() => setSelectedLists((lists) => lists.filter((t) => t !== list.id))}
 //                 >
 //                   x
 //                 </button>
@@ -210,28 +210,28 @@
 //           ref={inputRef}
 //           type="text"
 //           className="border rounded p-1 m-1"
-//           defaultValue={newTag}
-//           onChange={(e) => setNewTag(e.target.value)}
-//           placeholder="Add a new tag..."
+//           defaultValue={newList}
+//           onChange={(e) => setNewList(e.target.value)}
+//           placeholder="Add a new list..."
 //         />
-//         {newTag && (
+//         {newList && (
 //           <div className="absolute bg-white border rounded mt-1">
-//             {Object.values(allTags)
-//               .filter((tag) => !selectedTags.includes(tag.id))
-//               .filter((tag) => tag.name.includes(newTag))
-//               .map((tag) => (
+//             {Object.values(allLists)
+//               .filter((list) => !selectedLists.includes(list.id))
+//               .filter((list) => list.name.includes(newList))
+//               .map((list) => (
 //                 <div
-//                   key={tag.id}
+//                   key={list.id}
 //                   className="p-1 hover:bg-gray-200 cursor-pointer"
 //                   onClick={() => {
-//                     setSelectedTags((tags) => [...tags, tag.id]);
-//                     setNewTag("");
+//                     setSelectedLists((lists) => [...lists, list.id]);
+//                     setNewList("");
 //                     if (inputRef.current) {
 //                       inputRef.current.value = "";
 //                     }
 //                   }}
 //                 >
-//                   {tag.name}
+//                   {list.name}
 //                 </div>
 //               ))}
 //           </div>
@@ -285,7 +285,7 @@
 //             content: "",
 //             created_at: new Date().toISOString(),
 //             positions: Object.fromEntries(
-//               selectedTags.map((tagId) => [tagId, generateKeyBetween(lastPositions[tagId], null)])
+//               selectedLists.map((listId) => [listId, generateKeyBetween(lastPositions[listId], null)])
 //             ),
 //           })
 //         }
