@@ -20,7 +20,7 @@ export default function Create() {
   const { data: allLists } = useQuery<{ [key: string]: List }>("allLists", async () => {
     const result = await axios.post("/api/db", [
       {
-        query: `select list.*, max(list_entries.position) last_position from list left join list_entries on list.id = list_entries.list_id group by list.id`,
+        query: `select list.*, max(list_entries.position) last_position from list left join list_entries on list.id = list_entries.parent_list_id group by list.id`,
       },
     ]);
     return result.data.reduce((acc, { id, name, last_position }) => {
@@ -50,7 +50,7 @@ export default function Create() {
   >(["note", listId], async () => {
     const result = await axios.post("/api/db", [
       {
-        query: `select note.*, list_entries.position from note join list_entries on note.id = list_entries.note_id where list_entries.list_id = $1`,
+        query: `select note.*, list_entries.position from note join list_entries on note.id = list_entries.child_note_id where list_entries.parent_list_id = $1`,
         params: [listId],
       },
     ]);
