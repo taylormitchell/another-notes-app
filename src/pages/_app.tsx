@@ -1,5 +1,4 @@
 import "../global.css";
-import BottomNav from "../components/BottomNav";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { CreateModal } from "@/components/createModal";
 import { useState } from "react";
@@ -19,7 +18,6 @@ const App = ({ Component, pageProps }) => {
           <Component {...pageProps} />
         </main>
         <CreateModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        <BottomNav openModal={() => setIsModalOpen(true)} />
       </div>
     </QueryClientProvider>
   );
