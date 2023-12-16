@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const BottomNav = () => {
+const BottomNav = ({ openModal }: { openModal: () => void }) => {
   const router = useRouter();
 
   return (
@@ -11,6 +11,14 @@ const BottomNav = () => {
       <div className="w-full h-16 bg-gray-100">
         <div className="flex justify-between items-center h-full px-4">
           <Link href="/lists">Lists</Link>
+          <Link href="/notes">Notes</Link>
+          <button
+            onClick={() => {
+              openModal();
+            }}
+          >
+            Create Modal
+          </button>
           <button
             onClick={() => {
               router.push(`/create`);
