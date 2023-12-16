@@ -36,7 +36,7 @@ export function useCreateNote() {
     },
     {
       onMutate: (note) => {
-        const notes = queryClient.getQueryData("notes");
+        const notes = queryClient.getQueryData<Note[]>("notes");
         queryClient.setQueryData("notes", [...notes, note]);
         queryClient.invalidateQueries("notes");
       },
