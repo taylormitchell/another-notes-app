@@ -5,26 +5,25 @@ export default function Notes() {
   if (isLoading) return <div>Loading...</div>;
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center">
-      <h1 className="text-2xl font-bold text-center my-4">Notes</h1>
-      <ul className="space-y-4">
-        {notes.map((note) => (
-          <li
-            key={note.id}
-            className="max-w-lg mx-auto border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
-          >
-            <div className="rounded overflow-hidden shadow-md bg-white">
-              <div
-                className="p-4"
-                contentEditable
-                suppressContentEditableWarning
-                dangerouslySetInnerHTML={{ __html: note.content }}
-              />
-              <div className="p-4 text-gray-600 text-sm">
-                {new Date(note.created_at).toLocaleString()}
+      <h1>Notes</h1>
+      <ul className="w-full space-y-4 p-4">
+        {notes
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .map((note) => (
+            <li key={note.id}>
+              <div className="p-3 space-y-2 rounded overflow-hidden shadow-md bg-white border border-gray-300">
+                <p
+                  className="w-full"
+                  contentEditable
+                  suppressContentEditableWarning
+                  dangerouslySetInnerHTML={{ __html: note.content }}
+                />
+                <div className="text-gray-600 text-sm">
+                  {new Date(note.created_at).toLocaleString()}
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
+            </li>
+          ))}
       </ul>
     </div>
   );

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCreateNote } from "@/lib/noteMutations";
-import { uuid } from "@/lib/utils";
 
 export const CreateModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [content, setContent] = useState("");
@@ -23,35 +22,29 @@ export const CreateModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-6" ref={modalRef}>
-        <h1 className="text-xl font-bold">Create Modal</h1>
-        <p>Modal content</p>
-        <div
-          className="p-4"
+      <div className="bg-white rounded-lg p-3" ref={modalRef}>
+        <p
+          className="p-4 border w-64 h-32"
           contentEditable
           suppressContentEditableWarning
           onInput={(e) => {
             setContent(e.currentTarget.textContent);
           }}
         />
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={() => {
-            createNote({
-              id: uuid(),
-              content,
-            });
-            onClose();
-          }}
-        >
-          Create
-        </button>
-        <button
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          onClick={onClose}
-        >
-          Cancel
-        </button>
+        <div className="flex justify-end space-x-4">
+          <button className="text-gray-500" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            className="text-gray-500"
+            onClick={() => {
+              createNote({ content });
+              onClose();
+            }}
+          >
+            Create
+          </button>
+        </div>
       </div>
     </div>
   );

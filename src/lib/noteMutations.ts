@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { uuid } from "./utils";
 
 type Note = {
   id: string;
@@ -26,7 +27,7 @@ export function useGetNotes() {
 export function useCreateNote() {
   const queryClient = useQueryClient();
   const { mutate } = useMutation(
-    async (note: { id: string; content: string }) => {
+    async (note: { id: string; content: string; created_at: string }) => {
       await axios.post("/api/db", [
         {
           query: `insert into note (id, content) values ($1, $2)`,
@@ -38,11 +39,11 @@ export function useCreateNote() {
       onMutate: (note) => {
         const notes = queryClient.getQueryData<Note[]>("notes");
         queryClient.setQueryData("notes", [...notes, note]);
-        queryClient.invalidateQueries("notes");
       },
     }
   );
-  return mutate;
+  return ({ content }: { content: string }) =>
+    mutate({ id: uuid(), content, created_at: new Date().toISOString() });
 }
 
 export function useUpdateNote() {

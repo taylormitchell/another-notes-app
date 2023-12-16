@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 const Sidebar = ({ openModal }: { openModal: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef(null);
+  const router = useRouter();
 
   // Close the sidebar if clicked outside
   const handleClickOutside = (event) => {
@@ -34,21 +36,23 @@ const Sidebar = ({ openModal }: { openModal: () => void }) => {
         } transition-transform duration-300 ease-in-out`}
       >
         <div className="flex flex-col w-64 items-left">
-          <Link href="/lists" onClick={() => setIsOpen(false)}>
-            Lists
-          </Link>
-          <Link href="/notes" onClick={() => setIsOpen(false)}>
-            Notes
-          </Link>
-          <button
-            className="text-left"
-            onClick={() => {
-              openModal();
-              setIsOpen(false);
-            }}
-          >
-            Create Modal
-          </button>
+          {[
+            { name: "Home", handler: () => router.push("/") },
+            { name: "Lists", handler: () => router.push("/lists") },
+            { name: "Notes", handler: () => router.push("/notes") },
+            { name: "Create Modal", handler: openModal },
+          ].map(({ name, handler }) => (
+            <button
+              key={name}
+              className="text-left hover:bg-gray-100 h-8 text-xl"
+              onClick={() => {
+                handler();
+                setIsOpen(false);
+              }}
+            >
+              {name}
+            </button>
+          ))}
         </div>
       </div>
     </>
