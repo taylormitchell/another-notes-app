@@ -1,15 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useCreateNote } from "@/lib/noteMutations";
+import { useCreateNote, useLists } from "@/lib/reactQueries";
 
 export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>();
   const createNote = useCreateNote();
+  const { data: lists } = useLists();
+  const [selectedLists, setSelectedLists] = useState<string[]>([]);
+  const [listSelectionOpen, setListSelectionOpen] = useState(false);
+  const listSelectionRef = useRef<HTMLSelectElement>();
+
+  const close = () => {
+    onClose();
+    setListSelectionOpen(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
+        close();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -22,24 +31,41 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg p-3" ref={modalRef}>
+      <div className="w-64 bg-white rounded-lg p-3" ref={modalRef}>
         <p
-          className="p-4 border w-64 h-32"
+          className="p-4 w-full border h-32"
           contentEditable
           suppressContentEditableWarning
           onInput={(e) => {
             setContent(e.currentTarget.textContent);
           }}
         />
+        {/* multi-select dropdown of existing lists */}
+        {listSelectionOpen ? (
+          <select className="border w-full" multiple ref={listSelectionRef}>
+            {lists
+              ?.filter((list) => !!list.name)
+              .map((list) => (
+                <option key={list.id} value={list.id}>
+                  {list.name}
+                </option>
+              ))}
+          </select>
+        ) : (
+          <button onClick={() => setListSelectionOpen(true)}>Add to list</button>
+        )}
         <div className="flex justify-end space-x-4">
-          <button className="text-gray-500" onClick={onClose}>
+          <button className="text-gray-500" onClick={close}>
             Cancel
           </button>
           <button
             className="text-gray-500"
             onClick={() => {
-              createNote({ content });
-              onClose();
+              const listIds = listSelectionRef.current
+                ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
+                : [];
+              createNote({ content, listIds });
+              close();
             }}
           >
             Create

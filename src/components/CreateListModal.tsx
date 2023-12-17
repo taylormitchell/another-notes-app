@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useCreateNote } from "@/lib/noteMutations";
+import { useCreateNote, useLists } from "@/lib/reactQueries";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { uuid } from "@/lib/utils";
@@ -46,6 +46,7 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
   const [content, setContent] = useState("");
   const router = useRouter();
   const createList = useCreateList();
+  const { data: lists } = useLists();
   const modalRef = useRef<HTMLDivElement>();
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -60,15 +61,6 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
   }, []);
 
   // Get all lists and, if they have any entries, the last positioned note in the list_entries table
-  const { data: lists } = useQuery<List[]>("lists", async () => {
-    const result = await axios.post("/api/db", [
-      {
-        query: `select id, name, created_at from list`,
-      },
-    ]);
-    console.log(result.data);
-    return result.data;
-  });
 
   // Input element with list of matching lists below it.
   // Tapping an option in the list opens that list.
@@ -85,7 +77,11 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
         <ul className="overflow-y-scroll overflow-x-hidden max-h-64">
           {content &&
             lists
-              ?.filter((list) => list.name !== "" && list.name.includes(content))
+              ?.filter(
+                (list) =>
+                  list.name !== "" &&
+                  list.name.toLocaleLowerCase().includes(content.toLocaleLowerCase())
+              )
               .map((list) => (
                 <li
                   key={list.id}

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { generateKeyBetween } from "fractional-indexing";
-import { uuid } from "../../lib/utils";
+import { uuid, generatePositionBetween, sortByPosition } from "../../lib/utils";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { useListWithChildren } from "@/lib/reactQueries";
 
 type Note = {
   type: "note";
@@ -20,62 +20,45 @@ type List = {
   children: ((Note & { position: string }) | (List & { position: string }))[];
 };
 
+function useCreateNoteInList(listId: string) {
+  const queryClient = useQueryClient();
+  const { mutate: createNote } = useMutation(
+    async (note: { id: string; content: string; position: string; created_at: string }) => {
+      await axios.post("/api/db", [
+        {
+          query: `insert into note (id, content) values ($1, $2)`,
+          params: [note.id, note.content],
+        },
+        {
+          query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
+          params: [listId, note.id, note.position],
+        },
+      ]);
+    },
+    {
+      onMutate: (note) => {
+        const list = queryClient.getQueryData(["list", listId]) as List;
+        queryClient.setQueryData<List>(["list", listId], {
+          ...list,
+          children: [...list.children, { ...note, type: "note" }],
+        });
+      },
+    }
+  );
+  return ({ content = "", position }: { content?: string; position: string }) => {
+    const note = { id: uuid(), content, position, created_at: new Date().toISOString() };
+    createNote(note);
+    return note;
+  };
+}
+
 export default function List() {
   const router = useRouter();
-  const listId = router.query.listId;
+  const listId =
+    typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0] ?? "";
   const queryClient = useQueryClient();
 
-  const { data: list } = useQuery<List>(["list", listId], async () => {
-    const result = await axios.post("/api/db", [
-      {
-        query: `
-          select 
-            list.id, list.name, list.created_at, 
-            list_entries.position, list_entries.child_note_id, 
-            list_entries.child_list_id, 
-            child_note.created_at child_note_created_at, child_note.content child_note_content,
-            child_list.created_at child_list_created_at, child_list.name child_list_name
-          from list 
-          left join list_entries on list.id = list_entries.parent_list_id 
-          left join note as child_note on list_entries.child_note_id = child_note.id 
-          left join list as child_list on list_entries.child_list_id = child_list.id 
-          where list.id = $1`,
-        params: [listId],
-      },
-    ]);
-    const data = result.data;
-    console.log(data);
-    const list: List = {
-      type: "list",
-      id: data[0].id,
-      name: data[0].name,
-      created_at: data[0].created_at,
-      children: [],
-    };
-    data.forEach((row) => {
-      if (row.child_note_id) {
-        list.children.push({
-          type: "note",
-          id: row.child_note_id,
-          created_at: row.child_note_created_at,
-          content: row.child_note_content,
-          position: row.position,
-        });
-      }
-      if (row.child_list_id) {
-        list.children.push({
-          type: "list",
-          id: row.child_list_id,
-          created_at: row.child_list_created_at,
-          name: row.child_list_name,
-          position: row.position,
-          children: [],
-        });
-      }
-    });
-    console.log(list);
-    return list;
-  });
+  const { data: list } = useListWithChildren(listId);
 
   const { mutate: updateListName } = useMutation(
     async ({ id, name }: { id: string; name: string }) => {
@@ -107,29 +90,34 @@ export default function List() {
   //   return result.data;
   // });
 
-  const { mutate: createNote } = useMutation(
-    async (note: { id: string; content: string; position: string }) => {
-      await axios.post("/api/db", [
-        {
-          query: `insert into note (id, content) values ($1, $2)`,
-          params: [note.id, note.content],
-        },
-        {
-          query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
-          params: [listId, note.id, note.position],
-        },
-      ]);
-    },
-    {
-      onMutate: (note) => {
-        const list = queryClient.getQueryData(["list", listId]) as List;
-        queryClient.setQueryData(["list", listId], {
-          ...list,
-          child: [...list.children, { type: "note", id: note.id, content: note.content }],
-        });
-      },
-    }
-  );
+  const createNote = useCreateNoteInList(listId);
+
+  // const { mutate: createNote } = useMutation(
+  //   async (note: { id: string; content: string; position: string }) => {
+  //     await axios.post("/api/db", [
+  //       {
+  //         query: `insert into note (id, content) values ($1, $2)`,
+  //         params: [note.id, note.content],
+  //       },
+  //       {
+  //         query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
+  //         params: [listId, note.id, note.position],
+  //       },
+  //     ]);
+  //   },
+  //   {
+  //     onMutate: (note) => {
+  //       const list = queryClient.getQueryData(["list", listId]) as List;
+  //       queryClient.setQueryData<List>(["list", listId], {
+  //         ...list,
+  //         children: [
+  //           ...list.children,
+  //           { type: "note", id: note.id, content: note.content, position: note.position },
+  //         ],
+  //       });
+  //     },
+  //   }
+  // );
 
   const { mutate: updateNote } = useMutation(
     async ({ id, content }: { id: string; content: string }) => {
@@ -197,9 +185,11 @@ export default function List() {
     },
     {
       onMutate: (id) => {
-        const notes = queryClient.getQueryData(["note", listId]) as any[];
-        const updatedNotes = notes.filter((n) => n.id !== id);
-        queryClient.setQueryData(["note", listId], updatedNotes);
+        const list = queryClient.getQueryData<List>(["list", listId]);
+        queryClient.setQueryData(["list", listId], {
+          ...list,
+          children: list.children.filter((c) => c.id !== id),
+        });
       },
     }
   );
@@ -207,17 +197,37 @@ export default function List() {
   if (!list) return null;
 
   // sort by position and created_at
-  const sortedChildren = list.children.sort((a, b) => {
-    if (a.position === b.position) {
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    }
-    return a.position > b.position ? 1 : -1;
-  });
+  const sortedChildren = list.children.sort(sortByPosition);
   const lastPosition = sortedChildren.slice(-1)[0]?.position ?? null;
 
   return (
     // center everything
-    <div className="flex flex-col items-center">
+    <div
+      className="flex flex-col items-center"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          // get content of active element
+          const el = document.activeElement as HTMLElement;
+          const html = el.innerHTML;
+          console.log(html);
+          // console.log(text.at(-1) === "\n");
+        }
+      }}
+    >
+      {/* <button
+        onClick={() => {
+          // Previously, we ended up with duplicate positions that were messing with things.
+          // Pressing this button fixes that.
+          const newPositions = generateNKeysBetween(null, null, sortedChildren.length);
+          Promise.all(
+            sortedChildren.map((child, i) => {
+              return updatePosition({ id: child.id, type: child.type, position: newPositions[i] });
+            })
+          );
+        }}
+      >
+        Fix positions
+      </button> */}
       <h1
         className="text-2xl font-bold text-center"
         contentEditable
@@ -228,11 +238,21 @@ export default function List() {
         }}
         dangerouslySetInnerHTML={{ __html: list.name }}
       />
+
       <ul className="w-full space-y-4 p-4">
-        {sortedChildren.map((child) => (
+        <li key="top-bottom">
+          <button
+            className="w-full h-4 hover:bg-blue-100"
+            onClick={() => {
+              createNote({
+                position: generatePositionBetween(null, sortedChildren[0]?.position ?? null),
+              });
+            }}
+          />
+        </li>
+        {sortedChildren.map((child, i) => (
           <li
             key={child.id}
-            className="border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
             draggable="true"
             onDragStart={(e) => {
               e.dataTransfer.setData("text/plain", child.id);
@@ -247,44 +267,56 @@ export default function List() {
             }}
           >
             {child.type === "note" ? (
-              <div className="rounded overflow-hidden shadow-md bg-white">
-                <div
-                  className="p-4"
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    const content = e.currentTarget.textContent;
-                    updateNote({ id: child.id, content });
+              <>
+                <div className="rounded overflow-hidden shadow-md bg-white">
+                  <div
+                    className="p-4"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      const content = e.currentTarget.textContent;
+                      updateNote({ id: child.id, content });
+                    }}
+                    // delete on backspace if empty
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && e.currentTarget.textContent === "") {
+                        e.preventDefault();
+                        deleteNote(child.id);
+                      }
+                    }}
+                    dangerouslySetInnerHTML={{ __html: child.content }}
+                  />
+                  <div className="text-gray-600 text-sm">
+                    <div>
+                      {new Date(child.created_at).toLocaleString()} ({child.position})
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="w-full h-4 hover:bg-blue-100"
+                  onClick={() => {
+                    const before = child.position;
+                    const after = sortedChildren[i + 1]?.position ?? null;
+                    createNote({ position: generatePositionBetween(before, after) });
                   }}
-                  // delete on backspace if empty
-                  onKeyDown={(e) => {
-                    if (e.key === "Backspace" && e.currentTarget.textContent === "") {
-                      e.preventDefault();
-                      deleteNote(child.id);
-                    }
-                  }}
-                  dangerouslySetInnerHTML={{ __html: child.content }}
                 />
-              </div>
+              </>
             ) : (
               <div className="p-4">
                 <Link href={`/lists/${child.id}`}>
                   <h3 className="text-l font-bold">{child.name}</h3>
                   <div>...</div>
                 </Link>
+                <div className="text-gray-600 text-sm">
+                  <div>
+                    {new Date(child.created_at).toLocaleString()} ({child.position})
+                  </div>
+                </div>
               </div>
             )}
           </li>
         ))}
       </ul>
-      <button
-        className="w-8 border border-black rounded-md my-4"
-        onClick={() =>
-          createNote({ id: uuid(), content: "", position: generateKeyBetween(lastPosition, null) })
-        }
-      >
-        +
-      </button>
     </div>
   );
 }

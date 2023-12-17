@@ -1,4 +1,4 @@
-import { useGetNotes } from "@/lib/noteMutations";
+import { useGetNotes } from "@/lib/reactQueries";
 
 export default function Notes() {
   const { notes, isLoading } = useGetNotes();
