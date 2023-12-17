@@ -217,7 +217,7 @@ export default function List() {
 
   return (
     // center everything
-    <div className="max-w-2xl mx-auto flex flex-col items-center">
+    <div className="flex flex-col items-center">
       <h1
         className="text-2xl font-bold text-center"
         contentEditable
@@ -228,11 +228,11 @@ export default function List() {
         }}
         dangerouslySetInnerHTML={{ __html: list.name }}
       />
-      <ul className="space-y-4">
+      <ul className="w-full space-y-4 p-4">
         {sortedChildren.map((child) => (
           <li
             key={child.id}
-            className="max-w-lg mx-auto border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
+            className="border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
             draggable="true"
             onDragStart={(e) => {
               e.dataTransfer.setData("text/plain", child.id);

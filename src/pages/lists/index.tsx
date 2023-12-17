@@ -13,7 +13,7 @@ export default function Lists() {
   const queryClient = useQueryClient();
 
   // Get all lists and the first 3 children of each list
-  const { data: lists, isLoading } = useQuery<List[]>("lists", async () => {
+  const { data: lists, isLoading } = useQuery<List[]>("listsWithChildren", async () => {
     const result = await axios.post("/api/db", [
       {
         query: `
@@ -45,7 +45,6 @@ export default function Lists() {
     });
     return Object.values(lists);
   });
-  console.log(lists);
 
   const deleteList = useMutation(
     async (id: string) => {
@@ -58,9 +57,9 @@ export default function Lists() {
     },
     {
       onMutate: (id) => {
-        const lists = queryClient.getQueryData<any[]>("lists");
+        const lists = queryClient.getQueryData<any[]>("listsWithChildren");
         const updatedLists = lists.filter((t) => t.id !== id);
-        queryClient.setQueryData("lists", updatedLists);
+        queryClient.setQueryData("listsWithChildren", updatedLists);
       },
     }
   );
@@ -77,8 +76,8 @@ export default function Lists() {
     },
     {
       onMutate: (list) => {
-        const lists = queryClient.getQueryData<any[]>("lists");
-        queryClient.setQueryData("lists", [...lists, list]);
+        const lists = queryClient.getQueryData<any[]>("listsWithChildren");
+        queryClient.setQueryData("listsWithChildren", [...lists, list]);
       },
     }
   );
@@ -87,7 +86,6 @@ export default function Lists() {
 
   return (
     <div>
-      <h1>Lists</h1>
       <ul>
         {lists.map((list) => (
           <li key={list.id}>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
+import { Sidebar as SidebarIcon } from "react-feather";
 
 const Sidebar = ({ openModal }: { openModal: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,8 +23,8 @@ const Sidebar = ({ openModal }: { openModal: () => void }) => {
 
   return (
     <>
-      <button className="p-2 text-white bg-blue-500 rounded" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? "Close" : "Menu"}
+      <button className="p-2 " onClick={() => setIsOpen(!isOpen)}>
+        <SidebarIcon />
       </button>
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" aria-hidden="true"></div>

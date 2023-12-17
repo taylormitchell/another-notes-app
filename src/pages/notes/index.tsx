@@ -5,7 +5,6 @@ export default function Notes() {
   if (isLoading) return <div>Loading...</div>;
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center">
-      <h1>Notes</h1>
       <ul className="w-full space-y-4 p-4">
         {notes
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

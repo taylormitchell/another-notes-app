@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCreateNote } from "@/lib/noteMutations";
 
-export const CreateModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>();
   const createNote = useCreateNote();
