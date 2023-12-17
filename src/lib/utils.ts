@@ -17,7 +17,10 @@ export function generatePositionBetween(
   b: string | null | undefined,
   digits?: string
 ) {
-  return a === b ? a : generateKeyBetween(a, b, digits);
+  if (a && b && a === b) {
+    return a;
+  }
+  return generateKeyBetween(a, b, digits);
 }
 
 export const FIRST_POSITION = generateKeyBetween(null, null);
