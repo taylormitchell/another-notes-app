@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { FIRST_POSITION, uuid } from "./utils";
+import { FIRST_POSITION, generatePositionBetween, uuid } from "./utils";
 import { Note, List } from "@/types";
 
 export function useGetNotes() {
@@ -19,30 +19,51 @@ export function useGetNotes() {
   return { notes, isLoading };
 }
 
-// export function useCreateNote() {
-//   const queryClient = useQueryClient();
-//   const { mutate } = useMutation(
-//     async (note: { id: string; content: string; created_at: string }) => {
-//       await axios.post("/api/db", [
-//         {
-//           query: `insert into note (id, content) values ($1, $2)`,
-//           params: [note.id, note.content],
-//         },
-//       ]);
-//     },
-//     {
-//       onMutate: (note) => {
-//         const notes = queryClient.getQueryData<Note[]>("notes");
-//         queryClient.setQueryData("notes", [...notes, note]);
-//       },
-//     }
-//   );
-//   return ({ content }: { content: string }) =>
-//     mutate({ id: uuid(), content, created_at: new Date().toISOString() });
-// }
+type TopPositions = { [key: string]: string | null };
+
+/**
+ * Returns an object with every lists top position like { [listId]: topPosition }
+ */
+export function useAllTopPositions() {
+  return useQuery<TopPositions>("allTopPositions", async () => {
+    const [positions, lists] = await Promise.all([
+      // order by position desc, group by parent_list_id, take first
+      axios.post<[{ parent_list_id: string; position: string }]>("/api/db", [
+        {
+          query: `
+            SELECT parent_list_id, MIN(position) AS position
+            FROM list_entries
+            GROUP BY parent_list_id;
+          `,
+        },
+      ]),
+      axios.post<List[]>("/api/db", [
+        {
+          query: `
+            select id from list
+          `,
+        },
+      ]),
+    ]);
+    const positionsObj: TopPositions = positions.data.reduce(
+      (acc: TopPositions, { parent_list_id, position }) => {
+        acc[parent_list_id] = position;
+        return acc;
+      },
+      {}
+    );
+    lists.data.forEach(({ id }) => {
+      positionsObj[id] = positionsObj[id] ?? null;
+    });
+    console.log("positionsObj", positionsObj);
+    return positionsObj;
+  });
+}
 
 export function useCreateNote() {
   const queryClient = useQueryClient();
+  const { data: allTopPositions } = useAllTopPositions();
+  console.log("allTopPositions", allTopPositions);
   const { mutate } = useMutation(
     async (note: {
       id: string;
@@ -50,67 +71,53 @@ export function useCreateNote() {
       created_at: string;
       listPositions: { listId: string; position: string }[];
     }) => {
+      console.log("note", note);
       // Get first position in each list
       await axios.post("/api/db", [
         {
           query: `insert into note (id, content) values ($1, $2)`,
           params: [note.id, note.content],
         },
-        // TODO: not working
-        // ...note.listPositions.map(({ listId, position }) => ({
-        //   query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
-        //   params: [listId, note.id, position],
-        // })),
+        ...note.listPositions.map(({ listId, position }) => ({
+          query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
+          params: [listId, note.id, position],
+        })),
       ]);
     },
     {
-      onMutate: (note) => {
+      onMutate: ({ id, content, created_at, listPositions }) => {
         const notes = queryClient.getQueryData<Note[]>("notes") ?? [];
-        queryClient.setQueryData<Note[]>("notes", [
-          ...notes,
-          { id: note.id, content: note.content, created_at: note.created_at },
-        ]);
-        // TODO: not working
-        // note.listPositions.forEach(({ listId, position }) => {
-        //   const list = queryClient.getQueryData<ListWithChildren>(["list", listId]);
-        //   queryClient.setQueryData<ListWithChildren>(["list", listId], {
-        //     ...list,
-        //     children: [
-        //       ...list.children,
-        //       {
-        //         type: "note",
-        //         id: note.id,
-        //         content: note.content,
-        //         created_at: note.created_at,
-        //         position,
-        //       },
-        //     ],
-        //   });
-        // });
+        const note: Note = { id, content, created_at };
+        queryClient.setQueryData<Note[]>("notes", [...notes, note]);
+        listPositions.forEach(({ listId, position }) => {
+          const list = queryClient.getQueryData<ListWithChildren>(["list", listId]);
+          queryClient.setQueryData<ListWithChildren>(["list", listId], {
+            ...list,
+            children: [
+              ...list.children,
+              {
+                type: "note",
+                id,
+                content,
+                created_at,
+                position,
+              },
+            ],
+          });
+        });
       },
     }
   );
   return async ({ content, listIds = [] }: { content: string; listIds?: string[] }) => {
-    const positions = (await Promise.all(
-      listIds.map(async (listId) => {
-        const result = await axios.post("/api/db", [
-          {
-            query: `
-            select position from list_entries where parent_list_id = $1 order by position asc limit 1
-          `,
-            params: [listId],
-          },
-        ]);
-        return result.data[0]?.position ?? null;
-      })
-    )) as (string | null)[];
     mutate({
       id: uuid(),
       content,
       created_at: new Date().toISOString(),
-      listPositions: listIds.map((listId, i) => ({
+      listPositions: listIds.map((listId) => ({
         listId,
-        position: positions[i] ?? FIRST_POSITION,
+        position: allTopPositions[listId]
+          ? generatePositionBetween(null, allTopPositions[listId])
+          : FIRST_POSITION,
       })),
     });
   };
@@ -127,79 +134,6 @@ export function useUpdateNote() {
   });
   return mutate;
 }
-
-//   const { mutate: updateNote } = useMutation(
-//     async ({ id, content }: { id: string; content: string }) => {
-//       await axios.post("/api/db", [
-//         {
-//           query: `update note set content = $1 where id = $2`,
-//           params: [content, id],
-//         },
-//       ]);
-//     },
-//     {
-//       onMutate: (note) => {
-//         const list = queryClient.getQueryData(["create", listId]) as List;
-//         const updatedList = {
-//           ...list,
-//           children: list.children.map((c) => {
-//             if (c.type === "note" && c.id === note.id) {
-//               return { ...c, content: note.content };
-//             }
-//             return c;
-//           }),
-//         };
-//         queryClient.setQueryData(["create", listId], updatedList);
-//       },
-//     }
-//   );
-
-//   const { mutate: updatePosition } = useMutation(
-//     async ({ id, position }: { id: string; position: string }) => {
-//       await axios.post("/api/db", [
-//         {
-//           query: `update list_entries set position = $1 where child_note_id = $2`,
-//           params: [position, id],
-//         },
-//       ]);
-//     },
-//     {
-//       onMutate: (note) => {
-//         const list = queryClient.getQueryData(["create", listId]) as List;
-//         const updatedList = {
-//           ...list,
-//           children: list.children.map((c) => {
-//             if (c.type === "note" && c.id === note.id) {
-//               return { ...c, position: note.position };
-//             }
-//             return c;
-//           }),
-//         };
-//         queryClient.setQueryData(["create", listId], updatedList);
-//       },
-//     }
-//   );
-
-//   const { mutate: deleteNote } = useMutation(
-//     async (id: string) => {
-//       await axios.post("/api/db", [
-//         {
-//           query: `delete from note where id = $1`,
-//           params: [id],
-//         },
-//       ]);
-//     },
-//     {
-//       onMutate: (id) => {
-//         const list = queryClient.getQueryData(["create", listId]) as List;
-//         const updatedList = {
-//           ...list,
-//           children: list.children.filter((c) => c.type === "note" && c.id !== id),
-//         };
-//         queryClient.setQueryData(["create", listId], updatedList);
-//       },
-//     }
-//   );
 
 export function useLists() {
   return useQuery<List[]>("lists", async () => {
