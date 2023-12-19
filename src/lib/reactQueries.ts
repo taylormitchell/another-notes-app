@@ -15,13 +15,24 @@ export function useGetCachedNotes() {
   return (): Note[] => queryClient.getQueryData<Note[]>("notes") ?? [];
 }
 
+// export function useSetCachedListWithChildren() {
+//   const queryClient = useQueryClient();
+//   return (listId: string, updater: ListWithChildren | ((list: ListWithChildren) => ListWithChildren)
+//     ) => {
+//     queryClient.setQueryData<ListWithChildren | undefined>(["list", listId], (oldList) => {
+//       if (!oldList) return oldList;
+//       return typeof updater === "function" ? updater(oldList) : updater;
+//     });
+//   }
+// }
+
 export function useSetCachedListWithChildren() {
   const queryClient = useQueryClient();
-  return (listId: string, updater: ListWithChildren | ((list: ListWithChildren) => ListWithChildren)
+  return (updater: (list: ListWithChildren) => ListWithChildren
     ) => {
-    queryClient.setQueryData<ListWithChildren | undefined>(["list", listId], (oldList) => {
-      if (!oldList) return oldList;
-      return typeof updater === "function" ? updater(oldList) : updater;
+    queryClient.setQueryData<ListWithChildren[] | undefined>(["listsWithChildren"], (oldLists) => {
+      if (!oldLists) return [];
+      return oldLists.map((list) => updater(list));
     });
   }
 }
@@ -118,7 +129,8 @@ export function useCreateNote() {
       onMutate: ({ id, content, created_at, listPositions }) => {
         setCachedNotes((oldNotes) => [...oldNotes, { id, content, created_at}]);
         listPositions.forEach(({ listId, position }) => {
-          setCachedListWithChildren(listId, (list) => {
+          setCachedListWithChildren((list) => {
+            if (list.id !== listId) return list;
             return {
               ...list,
               children: [
@@ -131,15 +143,15 @@ export function useCreateNote() {
       },
     }
   );
-  return async ({ content, listIds = [] }: { content: string; listIds?: string[] }) => {
+  return async ({ content = "", listPositions = [] }: { content?: string; listPositions?: { id: string, position?: string }[] }) => {
     mutate({
       id: uuid(),
       content,
       created_at: new Date().toISOString(),
-      listPositions: listIds.map((listId) => ({
-        listId,
-        position: allTopPositions?.[listId]
-          ? generatePositionBetween(null, allTopPositions[listId])
+      listPositions: listPositions.map(({ id, position }) => ({
+        listId: id,
+        position: position ? position : allTopPositions?.[id]
+          ? generatePositionBetween(null, allTopPositions[id])
           : FIRST_POSITION,
       })),
     });
@@ -147,6 +159,8 @@ export function useCreateNote() {
 }
 
 export function useUpdateNote() {
+  const setCachedNotes = useSetCachedNotes();
+  const setCachedListWithChildren = useSetCachedListWithChildren();
   const { mutate } = useMutation(async (note: { id: string; content: string }) => {
     await axios.post("/api/db", [
       {
@@ -154,6 +168,28 @@ export function useUpdateNote() {
         params: [note.content, note.id],
       },
     ]);
+  }, {
+    onMutate: ({ id, content }) => {
+      setCachedNotes((oldNotes) => {
+        return oldNotes.map((note) => {
+          if (note.id === id) {
+            return { ...note, content };
+          }
+          return note;
+        });
+      });
+      setCachedListWithChildren((list) => {
+        return {
+          ...list,
+          children: list.children.map((child) => {
+            if (child.id === id) {
+              return { ...child, content };
+            }
+            return child;
+          }),
+        };
+      });
+    }
   });
   return mutate;
 }

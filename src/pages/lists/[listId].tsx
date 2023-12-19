@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "react-query";
 import { uuid, generatePositionBetween, sortByPosition } from "../../lib/utils";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { useSetCachedListWithChildren, useListWithChildren } from "@/lib/reactQueries";
+import { useSetCachedListWithChildren, useListWithChildren, useCreateNote, useUpdateNote } from "@/lib/reactQueries";
 
 type Note = {
   type: "note";
@@ -22,30 +22,32 @@ type List = {
 
 function useCreateNoteInList(listId: string) {
   const setCachedListWithChildren = useSetCachedListWithChildren();
-  const { mutate: createNote } = useMutation(
-    async (note: { id: string; content: string; position: string; created_at: string }) => {
-      await axios.post("/api/db", [
-        {
-          query: `insert into note (id, content) values ($1, $2)`,
-          params: [note.id, note.content],
-        },
-        {
-          query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
-          params: [listId, note.id, note.position],
-        },
-      ]);
-    },
-    {
-      onMutate: (note) => {
-        setCachedListWithChildren(listId, (list) => {
-          return {
-            ...list,
-            children: [...list.children, { ...note, type: "note" }],
-          };
-        });
-      },
-    }
-  );
+
+  const createNote = useCreateNote();
+//   const { mutate: createNote } = useMutation(
+//     async (note: { id: string; content: string; position: string; created_at: string }) => {
+//       await axios.post("/api/db", [
+//         {
+//           query: `insert into note (id, content) values ($1, $2)`,
+//           params: [note.id, note.content],
+//         },
+//         {
+//           query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
+//           params: [listId, note.id, note.position],
+//         },
+//       ]);
+//     },
+//     {
+//       onMutate: (note) => {
+//         setCachedListWithChildren(listId, (list) => {
+//           return {
+//             ...list,
+//             children: [...list.children, { ...note, type: "note" }],
+//           };
+//         });
+//       },
+//     }
+//   );
   return ({ content = "", position }: { content?: string; position: string }) => {
     const note = { id: uuid(), content, position, created_at: new Date().toISOString() };
     createNote(note);
@@ -58,6 +60,7 @@ export default function List() {
   const listId =
     typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0] ?? "";
   const queryClient = useQueryClient();
+  const createNote = useCreateNote();
 
   const { data: list, isLoading } = useListWithChildren(listId);
 
@@ -78,34 +81,12 @@ export default function List() {
     }
   );
 
-  const createNote = useCreateNoteInList(listId);
+  const createNoteInList = ({content, position}: {content?: string, position?: string}) => {
+    return createNote({ content, listPositions: [{ id: listId, position }], })
+  }
+  const updateNote = useUpdateNote();
 
 
-  const { mutate: updateNote } = useMutation(
-    async ({ id, content }: { id: string; content: string }) => {
-      await axios.post("/api/db", [
-        {
-          query: `update note set content = $1 where id = $2`,
-          params: [content, id],
-        },
-      ]);
-    },
-    {
-      onMutate: (note) => {
-        const list = queryClient.getQueryData(["list", listId]) as List;
-        const updatedList = {
-          ...list,
-          child: list.children.map((c) => {
-            if (c.type === "note" && c.id === note.id) {
-              return { ...c, content: note.content };
-            }
-            return c;
-          }),
-        };
-        queryClient.setQueryData(["list", listId], updatedList);
-      },
-    }
-  );
 
   const { mutate: updatePosition } = useMutation(
     async ({ id, type, position }: { id: string; type: "note" | "list"; position: string }) => {
@@ -209,7 +190,7 @@ export default function List() {
           <button
             className="w-full h-4 hover:bg-blue-100"
             onClick={() => {
-              createNote({
+              createNoteInList({
                 position: generatePositionBetween(null, sortedChildren[0]?.position ?? null),
               });
             }}
@@ -239,7 +220,7 @@ export default function List() {
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => {
-                      const content = e.currentTarget.textContent;
+                      const content = e.currentTarget.textContent ?? "";
                       updateNote({ id: child.id, content });
                     }}
                     // delete on backspace if empty
@@ -262,7 +243,7 @@ export default function List() {
                   onClick={() => {
                     const before = child.position;
                     const after = sortedChildren[i + 1]?.position ?? null;
-                    createNote({ position: generatePositionBetween(before, after) });
+                    createNoteInList({ position: generatePositionBetween(before, after) });
                   }}
                 />
               </>
