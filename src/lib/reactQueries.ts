@@ -3,6 +3,38 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { FIRST_POSITION, generatePositionBetween, uuid } from "./utils";
 import { Note, List } from "@/types";
 
+export function useGetCachedListWithChildren() {
+  const queryClient = useQueryClient();
+  return (listId: string): ListWithChildren | undefined => {
+    return queryClient.getQueryData<ListWithChildren | undefined>(["list", listId]);
+  }
+}
+
+export function useGetCachedNotes() {
+  const queryClient = useQueryClient();
+  return (): Note[] => queryClient.getQueryData<Note[]>("notes") ?? [];
+}
+
+export function useSetCachedListWithChildren() {
+  const queryClient = useQueryClient();
+  return (listId: string, updater: ListWithChildren | ((list: ListWithChildren) => ListWithChildren)
+    ) => {
+    queryClient.setQueryData<ListWithChildren | undefined>(["list", listId], (oldList) => {
+      if (!oldList) return oldList;
+      return typeof updater === "function" ? updater(oldList) : updater;
+    });
+  }
+}
+
+function useSetCachedNotes() {
+  const queryClient = useQueryClient();
+  return (updater: Note[] | ((notes: Note[]) => Note[])) => {
+    queryClient.setQueryData<Note[]>("notes", (oldNotes) => {
+      return typeof updater === "function" ? updater(oldNotes ?? []) : updater;
+    });
+  }
+}
+
 export function useGetNotes() {
   const { data: notes, isLoading } = useQuery<Note[]>("notes", async () => {
     const result = await axios.post("/api/db", [
@@ -60,7 +92,8 @@ export function useAllTopPositions() {
 }
 
 export function useCreateNote() {
-  const queryClient = useQueryClient();
+  const setCachedNotes = useSetCachedNotes();
+  const setCachedListWithChildren = useSetCachedListWithChildren();
   const { data: allTopPositions } = useAllTopPositions();
   const { mutate } = useMutation(
     async (note: {
@@ -69,7 +102,6 @@ export function useCreateNote() {
       created_at: string;
       listPositions: { listId: string; position: string }[];
     }) => {
-      console.log("note", note);
       // Get first position in each list
       await axios.post("/api/db", [
         {
@@ -84,23 +116,16 @@ export function useCreateNote() {
     },
     {
       onMutate: ({ id, content, created_at, listPositions }) => {
-        const notes = queryClient.getQueryData<Note[]>("notes") ?? [];
-        const note: Note = { id, content, created_at };
-        queryClient.setQueryData<Note[]>("notes", [...notes, note]);
+        setCachedNotes((oldNotes) => [...oldNotes, { id, content, created_at}]);
         listPositions.forEach(({ listId, position }) => {
-          const list = queryClient.getQueryData<ListWithChildren>(["list", listId]);
-          queryClient.setQueryData<ListWithChildren>(["list", listId], {
-            ...list,
-            children: [
-              ...list.children,
-              {
-                type: "note",
-                id,
-                content,
-                created_at,
-                position,
-              },
-            ],
+          setCachedListWithChildren(listId, (list) => {
+            return {
+              ...list,
+              children: [
+                ...list.children,
+                { type: "note", id, content, created_at, position },
+              ],
+            };
           });
         });
       },
@@ -113,7 +138,7 @@ export function useCreateNote() {
       created_at: new Date().toISOString(),
       listPositions: listIds.map((listId) => ({
         listId,
-        position: allTopPositions[listId]
+        position: allTopPositions?.[listId]
           ? generatePositionBetween(null, allTopPositions[listId])
           : FIRST_POSITION,
       })),

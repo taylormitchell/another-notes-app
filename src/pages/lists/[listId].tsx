@@ -1,9 +1,9 @@
 import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { uuid, generatePositionBetween, sortByPosition } from "../../lib/utils";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { useListWithChildren } from "@/lib/reactQueries";
+import { useSetCachedListWithChildren, useListWithChildren } from "@/lib/reactQueries";
 
 type Note = {
   type: "note";
@@ -21,7 +21,7 @@ type List = {
 };
 
 function useCreateNoteInList(listId: string) {
-  const queryClient = useQueryClient();
+  const setCachedListWithChildren = useSetCachedListWithChildren();
   const { mutate: createNote } = useMutation(
     async (note: { id: string; content: string; position: string; created_at: string }) => {
       await axios.post("/api/db", [
@@ -37,10 +37,11 @@ function useCreateNoteInList(listId: string) {
     },
     {
       onMutate: (note) => {
-        const list = queryClient.getQueryData(["list", listId]) as List;
-        queryClient.setQueryData<List>(["list", listId], {
-          ...list,
-          children: [...list.children, { ...note, type: "note" }],
+        setCachedListWithChildren(listId, (list) => {
+          return {
+            ...list,
+            children: [...list.children, { ...note, type: "note" }],
+          };
         });
       },
     }
@@ -54,8 +55,8 @@ function useCreateNoteInList(listId: string) {
 
 export default function List() {
   const router = useRouter();
-  const listId: string | undefined =
-    typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0];// ?? "";
+  const listId =
+    typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0] ?? "";
   const queryClient = useQueryClient();
 
   const { data: list, isLoading } = useListWithChildren(listId);
@@ -77,47 +78,8 @@ export default function List() {
     }
   );
 
-  // const { data: notes, error } = useQuery<
-  //   { id: string; content: string; created_at: string; position: string }[],
-  //   any
-  // >(["note", listId], async () => {
-  //   const result = await axios.post("/api/db", [
-  //     {
-  //       query: `select note.*, list_entries.position from note join list_entries on note.id = list_entries.child_note_id where list_entries.parent_list_id = $1`,
-  //       params: [listId],
-  //     },
-  //   ]);
-  //   return result.data;
-  // });
-
   const createNote = useCreateNoteInList(listId);
 
-  // const { mutate: createNote } = useMutation(
-  //   async (note: { id: string; content: string; position: string }) => {
-  //     await axios.post("/api/db", [
-  //       {
-  //         query: `insert into note (id, content) values ($1, $2)`,
-  //         params: [note.id, note.content],
-  //       },
-  //       {
-  //         query: `insert into list_entries (parent_list_id, child_note_id, position) values ($1, $2, $3)`,
-  //         params: [listId, note.id, note.position],
-  //       },
-  //     ]);
-  //   },
-  //   {
-  //     onMutate: (note) => {
-  //       const list = queryClient.getQueryData(["list", listId]) as List;
-  //       queryClient.setQueryData<List>(["list", listId], {
-  //         ...list,
-  //         children: [
-  //           ...list.children,
-  //           { type: "note", id: note.id, content: note.content, position: note.position },
-  //         ],
-  //       });
-  //     },
-  //   }
-  // );
 
   const { mutate: updateNote } = useMutation(
     async ({ id, content }: { id: string; content: string }) => {
