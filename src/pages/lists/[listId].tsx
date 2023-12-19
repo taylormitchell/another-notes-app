@@ -54,11 +54,11 @@ function useCreateNoteInList(listId: string) {
 
 export default function List() {
   const router = useRouter();
-  const listId =
-    typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0] ?? "";
+  const listId: string | undefined =
+    typeof router.query.listId === "string" ? router.query.listId : router.query.listId?.[0];// ?? "";
   const queryClient = useQueryClient();
 
-  const { data: list } = useListWithChildren(listId);
+  const { data: list, isLoading } = useListWithChildren(listId);
 
   const { mutate: updateListName } = useMutation(
     async ({ id, name }: { id: string; name: string }) => {
@@ -194,7 +194,10 @@ export default function List() {
     }
   );
 
-  if (!list) return null;
+  if (isLoading || !list || list.type === "none") {
+    console.log("List is loading", { isLoading, list })
+    return <div>Loading...</div>;
+  }
 
   // sort by position and created_at
   const sortedChildren = list.children.sort(sortByPosition);

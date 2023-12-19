@@ -19,7 +19,7 @@ export default async function handler(req: any, res: any) {
     res.status(200).json(lastResult.rows); // Send the result of the last query back as response
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
+    console.error("Error while executing:", statements, err);
     res.status(500).json({ error: err.message });
   } finally {
     await client.end();

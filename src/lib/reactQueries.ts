@@ -55,7 +55,6 @@ export function useAllTopPositions() {
     lists.data.forEach(({ id }) => {
       positionsObj[id] = positionsObj[id] ?? null;
     });
-    console.log("positionsObj", positionsObj);
     return positionsObj;
   });
 }
@@ -63,7 +62,6 @@ export function useAllTopPositions() {
 export function useCreateNote() {
   const queryClient = useQueryClient();
   const { data: allTopPositions } = useAllTopPositions();
-  console.log("allTopPositions", allTopPositions);
   const { mutate } = useMutation(
     async (note: {
       id: string;
@@ -159,8 +157,11 @@ type ListWithChildren = {
   )[];
 };
 
+const NO_RESULT = { type: "none" } as const;
+
 export function useListWithChildren(listId: string) {
-  return useQuery<ListWithChildren>(["list", listId], async () => {
+  return useQuery(["list", listId], async () => {
+    if (!listId) return NO_RESULT;
     const result = await axios.post("/api/db", [
       {
         query: `
@@ -179,6 +180,7 @@ export function useListWithChildren(listId: string) {
       },
     ]);
     const data = result.data;
+    if (data.length === 0) return NO_RESULT;
     const list: ListWithChildren = {
       type: "list",
       id: data[0].id,
