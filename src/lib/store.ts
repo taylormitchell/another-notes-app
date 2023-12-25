@@ -387,7 +387,10 @@ export const useStore = ():
       const response = await axios.get("/api/sqlite", { responseType: "arraybuffer" });
       const array = new Uint8Array(response.data);
       const db = await createFrontendSqlite(array);
-      const store = new Store(db);
+      const sqlToApi = async (sql: string, params?: BindParams | undefined) => {
+        await axios.post("/api/sqlite", { sql, params });
+      };
+      const store = new Store(db, sqlToApi);
       setStore(store);
     })();
   }, []);

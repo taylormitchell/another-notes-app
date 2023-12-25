@@ -17,6 +17,10 @@ export default function Notes() {
                   contentEditable
                   suppressContentEditableWarning
                   dangerouslySetInnerHTML={{ __html: note.content }}
+                  onBlur={(e) => {
+                    const content = e.currentTarget.textContent ?? "";
+                    store.updateNote({ id: note.id, content });
+                  }}
                 />
                 <div className="text-gray-600 text-sm">
                   {new Date(note.created_at).toLocaleString()}
