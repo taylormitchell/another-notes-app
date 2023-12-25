@@ -1,7 +1,6 @@
 import { useNotes, useNotesWithParentIds, useLists } from "@/lib/hooks";
-import { StoreContext, useStore, useStoreContext } from "@/lib/store";
+import { useStoreContext } from "@/lib/store";
 import { useState, useEffect } from "react";
-import { data } from "@/lib/import";
 
 export function StaticNotes() {
   const store = useStoreContext();
