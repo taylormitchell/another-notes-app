@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { generateKeyBetween, BASE_62_DIGITS } from "fractional-indexing";
+import { generateKeyBetween } from "fractional-indexing";
 
 export const uuid = v4;
 

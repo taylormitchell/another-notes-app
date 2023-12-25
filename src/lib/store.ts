@@ -212,7 +212,16 @@ export class Store {
       [listId]
     );
     if (!res || !res[0]) return generatePositionBetween(null, null);
-    return generatePositionBetween(res[0].position, null);
+    return generatePositionBetween(res[0]?.position ?? null, null);
+  }
+
+  getTopPosition(listId: string) {
+    const res = this.exec<{ position: string }>(
+      "SELECT MIN(position) as position FROM ListEntry WHERE parent_list_id = ?",
+      [listId]
+    );
+    if (!res || !res[0]) return generatePositionBetween(null, null);
+    return generatePositionBetween(null, res[0]?.position ?? null);
   }
 
   addNoteToLists({
@@ -230,7 +239,8 @@ export class Store {
       id: uuid(),
       parent_list_id: l.id,
       child_note_id: noteId,
-      position: l.position ?? this.getBottomPosition(l.id),
+      // position: l.position ?? this.getBottomPosition(l.id),
+      position: l.position ?? this.getTopPosition(l.id),
       created_at: now,
       updated_at: now,
     }));

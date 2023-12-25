@@ -53,19 +53,6 @@ BEGIN
 END;
 `;
 
-export async function createBackendSqlite(data?: ArrayLike<number> | Buffer | null | undefined) {
-  const SQL = await initSqlJs({
-    locateFile: (file) => path.join(process.cwd(), "node_modules/sql.js/dist", file),
-  });
-  if (data) {
-    return new SQL.Database(data);
-  } else {
-    const sqlite = new SQL.Database();
-    sqlite.run(sqlInitScript); // Run the query without returning anything
-    return sqlite;
-  }
-}
-
 export async function createFrontendSqlite(data?: ArrayLike<number> | Buffer | null | undefined) {
   const SQL = await initSqlJs({
     // Required to load the wasm binary asynchronously. Of course, you can host it wherever you want
