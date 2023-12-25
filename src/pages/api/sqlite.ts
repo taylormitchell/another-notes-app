@@ -1,18 +1,19 @@
 import fs from "fs";
 import sqlite3 from "sqlite3";
-import { download, upload } from "./s3";
+import { downloadSqlite, uploadSqlite } from "./s3";
 
 const sqliteFile = "data.sqlite";
 
-async function createSqlite() {
-  const data = await download();
-  if (!data.Body) throw new Error("no body");
-  const buf = await data.Body.transformToByteArray();
-  fs.writeFileSync(sqliteFile, buf);
-  return new sqlite3.Database(sqliteFile);
-}
-
-const sqlitePromise = createSqlite();
+const sqlitePromise = (async () => {
+  // todo - maybe should download from s3 every time?
+  if (fs.existsSync(sqliteFile)) {
+    return new sqlite3.Database(sqliteFile);
+  } else {
+    const buf = await downloadSqlite();
+    fs.writeFileSync(sqliteFile, buf);
+    return new sqlite3.Database(sqliteFile);
+  }
+})();
 
 // Upload sqlite database to s3 every 5 minutes
 // setInterval(() => {
@@ -37,7 +38,7 @@ export default async function handler(req: any, res: any) {
       const { sql, params } = req.body;
       console.log("executing sql: ", { sql, params });
       sqlite.run(sql, params);
-      upload(fs.readFileSync(sqliteFile));
+      uploadSqlite(fs.readFileSync(sqliteFile));
       res.status(200).send("ok");
     } catch (e) {
       console.log(e);

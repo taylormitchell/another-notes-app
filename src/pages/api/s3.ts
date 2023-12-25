@@ -9,7 +9,7 @@ export const s3 = new S3Client({
   },
 });
 
-export const upload = async (data: PutObjectCommand["input"]["Body"]) => {
+export const uploadSqlite = async (data: Buffer) => {
   const command = new PutObjectCommand({
     Bucket: env.BUCKET_NAME,
     Key: env.FILE_NAME,
@@ -18,10 +18,12 @@ export const upload = async (data: PutObjectCommand["input"]["Body"]) => {
   return s3.send(command);
 };
 
-export const download = async () => {
+export const downloadSqlite = async () => {
   const command = new GetObjectCommand({
     Bucket: env.BUCKET_NAME,
     Key: env.FILE_NAME,
   });
-  return s3.send(command);
+  const data = await s3.send(command);
+  if (!data.Body) throw new Error("no body");
+  return data.Body.transformToByteArray();
 };
