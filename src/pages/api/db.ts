@@ -1,5 +1,4 @@
 import { Client } from "pg";
-import invariant from "tiny-invariant";
 
 export default async function handler(req: any, res: any) {
   console.log("req.body", req.body);
