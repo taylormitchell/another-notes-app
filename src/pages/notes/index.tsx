@@ -1,8 +1,9 @@
-import { useGetNotes } from "@/lib/reactQueries";
+import { useNotes } from "@/lib/hooks";
+import { useStoreContext } from "@/lib/store";
 
 export default function Notes() {
-  const { notes, isLoading } = useGetNotes();
-  if (isLoading) return <div>Loading...</div>;
+  const store = useStoreContext();
+  const notes = useNotes(store);
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center">
       <ul className="w-full space-y-4 p-4">

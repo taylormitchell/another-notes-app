@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useCreateNote, useLists } from "@/lib/reactQueries";
+import { useStoreContext } from "@/lib/store";
+import { useLists } from "@/lib/hooks";
 
 export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>();
-  const createNote = useCreateNote();
-  const { data: lists } = useLists();
+  const store = useStoreContext();
+  const lists = useLists(store);
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [listSelectionOpen, setListSelectionOpen] = useState(false);
   const listSelectionRef = useRef<HTMLSelectElement>();
@@ -37,7 +38,7 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
           contentEditable
           suppressContentEditableWarning
           onInput={(e) => {
-            setContent(e.currentTarget.textContent);
+            setContent(e.currentTarget.textContent ?? "");
           }}
         />
         {/* multi-select dropdown of existing lists */}
@@ -64,7 +65,7 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
               const listIds = listSelectionRef.current
                 ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
                 : [];
-              createNote({ content, listIds });
+              store.addNote({ content, listPositions: listIds.map((id) => ({ id })) });
               close();
             }}
           >

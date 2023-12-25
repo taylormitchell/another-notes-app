@@ -1,8 +1,9 @@
-import { Note, List, ListEntry } from "../types";
+import { Note, List, ListEntry, NoteWithPosition } from "../types";
 import { Database, BindParams } from "sql.js";
 import { generatePositionBetween, uuid } from "./utils";
 import { createContext, useContext, useState, useEffect } from "react";
 import { createSqlite } from "./sqlite";
+import { data } from "./import";
 
 type Operation = "create" | "updated" | "delete";
 
@@ -18,7 +19,7 @@ export type Event =
       id: string;
     }
   | {
-      type: "listEntry";
+      type: "listentry";
       operation: Operation;
       id: string;
       parent_list_id: string;
@@ -53,7 +54,7 @@ export class Store {
     this.db.create_function(
       "emit_list_entry_event",
       (
-        type: "listEntry",
+        type: "listentry",
         operation: Operation,
         id: string,
         parent_list_id: string,
@@ -117,14 +118,19 @@ export class Store {
     content = "",
     created_at = new Date().toISOString(),
     updated_at = "", // TODO
+    listPositions = [] as { id: string; position?: string }[],
   } = {}) {
     const note = { id, content, created_at, updated_at: updated_at || created_at };
+    // TODO these should be in a transaction
     this.exec("INSERT INTO Note (id, content, created_at, updated_at) VALUES (?, ?, ?, ?)", [
       note.id,
       note.content,
       note.created_at,
       note.updated_at,
     ]);
+    if (listPositions.length) {
+      this.addNoteToLists({ noteId: note.id, listPositions });
+    }
     return note;
   }
 
@@ -226,11 +232,19 @@ export class Store {
       child_note_id: noteId,
       position: l.position ?? this.getBottomPosition(l.id),
       created_at: now,
+      updated_at: now,
     }));
     this.exec(
-      "INSERT INTO ListEntry (id, parent_list_id, child_note_id, position, created_at) VALUES " +
-        entries.map(() => "(?, ?, ?, ?, ?)").join(", "),
-      entries.flatMap((e) => [e.id, e.parent_list_id, e.child_note_id, e.position, e.created_at])
+      "INSERT INTO ListEntry (id, parent_list_id, child_note_id, position, created_at, updated_at) VALUES " +
+        entries.map(() => "(?, ?, ?, ?, ?, ?)").join(", "),
+      entries.flatMap((e) => [
+        e.id,
+        e.parent_list_id,
+        e.child_note_id,
+        e.position,
+        e.created_at,
+        e.updated_at,
+      ])
     );
   }
 
@@ -285,12 +299,36 @@ export class Store {
     return !!res.length;
   }
 
-  getNotesInList(listId: string): string[] {
-    const res = this.exec<{ child_note_id: string }>(
-      "SELECT child_note_id FROM ListEntry WHERE parent_list_id = ?",
+  getNotesInList(listId: string): NoteWithPosition[] {
+    return this.exec<NoteWithPosition>(
+      `SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position
+      FROM listentry
+      LEFT JOIN note ON listentry.child_note_id = note.id
+      WHERE listentry.parent_list_id = ?`,
       [listId]
     );
-    return res.map((r) => r.child_note_id);
+  }
+
+  getListChildren(listId: string) {
+    const notes = this.exec<Note & { type: "note"; position: string }>(
+      `
+      SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position, 'note' as type
+      FROM listentry
+      LEFT JOIN note ON listentry.child_note_id = note.id
+      WHERE listentry.parent_list_id = ? AND listentry.child_note_id IS NOT NULL
+    `,
+      [listId]
+    );
+    const lists = this.exec<List & { type: "list"; position: string }>(
+      `
+      SELECT list.id, list.name, list.created_at, list.updated_at, listentry.position, 'list' as type
+      FROM listentry
+      LEFT JOIN list ON listentry.child_list_id = list.id
+      WHERE listentry.parent_list_id = ? AND listentry.child_list_id IS NOT NULL
+    `,
+      [listId]
+    );
+    return [...notes, ...lists];
   }
 
   getListsWithChildren(
@@ -316,6 +354,14 @@ export class Store {
     );
     return lists.map((list) => ({ ...list, children: notesByListId[list.id] ?? [] }));
   }
+
+  listHasNoteId(listId: string, noteId: string) {
+    const res = this.exec<ListEntry>(
+      "SELECT * FROM ListEntry WHERE parent_list_id = ? AND child_note_id = ?",
+      [listId, noteId]
+    );
+    return !!res.length;
+  }
 }
 
 export const StoreContext = createContext<null | Store>(null);
@@ -338,7 +384,34 @@ export const useStore = ():
   const [store, setStore] = useState<Store | null>(null);
   useEffect(() => {
     createSqlite().then((db) => {
+      const store = new Store(db);
+
+      store.exec(
+        `insert into note (id, content, created_at, updated_at)
+         values ${data.notes.map(() => `(?, ?, ?, ?)`).join(", ")};`,
+        data.notes.flatMap((note) => [note.id, note.content, note.created_at, note.updated_at])
+      );
+      store.exec(
+        `insert into list (id, name, created_at, updated_at)
+           values ${data.lists.map(() => `(?, ?, ?, ?)`).join(", ")};`,
+        data.lists.flatMap((list) => [list.id, list.name, list.created_at, list.created_at])
+      );
+      store.exec(
+        `insert into listentry (id, parent_list_id, child_note_id, child_list_id, position, created_at, updated_at)
+              values ${data.list_entries.map(() => `(?, ?, ?, ?, ?, ?, ?)`).join(", ")};`,
+        data.list_entries.flatMap((entry) => [
+          entry.id,
+          entry.parent_list_id,
+          entry.child_note_id,
+          entry.child_list_id,
+          entry.position,
+          entry.created_at,
+          entry.created_at,
+        ])
+      );
+
       setStore(new Store(db));
+      (window as any).store = store;
     });
   }, []);
   if (!store) {

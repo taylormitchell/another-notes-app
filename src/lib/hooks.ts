@@ -1,6 +1,6 @@
 import { Note } from "@/types";
 import { useState, useEffect } from "react";
-import { Store, Event } from "./store";
+import { Store, Event, useStoreContext } from "./store";
 
 export function useSubscribeToEvent<T>(
   store: Store,
@@ -59,7 +59,7 @@ export function useListNotes(store: Store, listId: string) {
     (event) => {
       return (
         (event.type === "list" && event.id === listId) ||
-        (event.type === "listEntry" && event.parent_list_id === listId)
+        (event.type === "listentry" && event.parent_list_id === listId)
       );
     },
     () =>
@@ -67,5 +67,32 @@ export function useListNotes(store: Store, listId: string) {
         .getNotesInList(listId)
         .map((id) => store.getNote(id))
         .filter((n): n is Note => !!n)
+  );
+}
+
+export function useList(store: Store, listId: string) {
+  return useSubscribeToEvent(
+    store,
+    (event) => event.type === "list" && event.id === listId,
+    () => store.getList(listId)
+  );
+}
+
+export function useNotesInList(store: Store, listId: string) {
+  return useSubscribeToEvent(
+    store,
+    (event) =>
+      (event.type === "listentry" && event.parent_list_id === listId) ||
+      (event.type === "note" && store.listHasNoteId(listId, event.id)) ||
+      (event.type === "list" && event.id === listId),
+    () => store.getNotesInList(listId)
+  );
+}
+
+export function useListChildren(store: Store, listId: string) {
+  return useSubscribeToEvent(
+    store,
+    (event) => event.type === "listentry" && event.parent_list_id === listId,
+    () => store.getListChildren(listId)
   );
 }

@@ -198,69 +198,8 @@ export function EditableLists() {
 }
 
 const Data = () => {
-  const { store, isLoading } = useStore();
-
-  useEffect(() => {
-    if (!store) return;
-    store.exec(
-      `insert into note (id, content, created_at, updated_at)
-       values ${data.notes.map(() => `(?, ?, ?, ?)`).join(", ")};`,
-      data.notes.flatMap((note) => [note.id, note.content, note.created_at, note.updated_at])
-    );
-    store.exec(
-      `insert into list (id, name, created_at, updated_at)
-         values ${data.lists.map(() => `(?, ?, ?, ?)`).join(", ")};`,
-      data.lists.flatMap((list) => [list.id, list.name, list.created_at, list.created_at])
-    );
-    store.exec(
-      `insert into listentry (id, parent_list_id, child_note_id, child_list_id, position, created_at, updated_at)
-            values ${data.list_entries.map(() => `(?, ?, ?, ?, ?, ?, ?)`).join(", ")};`,
-      data.list_entries.flatMap((entry) => [
-        entry.id,
-        entry.parent_list_id,
-        entry.child_note_id,
-        entry.child_list_id,
-        entry.position,
-        entry.created_at,
-        entry.created_at,
-      ])
-    );
-
-    // data.notes.forEach((note) => {
-    //   store.addNote({
-    //     id: note.id,
-    //     content: note.content,
-    //     created_at: note.created_at,
-    //     updated_at: note.created_at,
-    //   });
-    // });
-    // data.lists.forEach((list) => {
-    //   store.addList({
-    //     id: list.id,
-    //     name: list.name,
-    //     created_at: list.created_at,
-    //     updated_at: list.created_at,
-    //   });
-    // });
-    // data.list_entries.forEach((entry) => {
-    //   store.addListEntry({
-    //     listId: entry.list_id,
-    //     noteId: entry.note_id,
-    //     position: entry.position,
-    //     created_at: entry.created_at,
-    //     updated_at: entry.created_at,
-    //   });
-    // });
-
-    console.log("Loading store...");
-  }, [store]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <StoreContext.Provider value={store}>
+    <div>
       <div
         className="app"
         style={{
@@ -310,7 +249,7 @@ const Data = () => {
         >
           Save
         </button> */}
-    </StoreContext.Provider>
+    </div>
   );
 };
 

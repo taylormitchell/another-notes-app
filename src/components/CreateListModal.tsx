@@ -1,41 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useCreateNote, useLists } from "@/lib/reactQueries";
-import axios from "axios";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { uuid } from "@/lib/utils";
+import { useLists } from "@/lib/hooks";
 import { useRouter } from "next/router";
-
-type List = {
-  id: string;
-  name: string;
-  created_at: string;
-};
-
-function useCreateList() {
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation(
-    async (list: List) => {
-      console.log("mutate", list);
-      await axios.post("/api/db", [
-        {
-          query: `INSERT INTO list (id, name, created_at) VALUES ($1, $2, $3)`,
-          params: [list.id, list.name, list.created_at],
-        },
-      ]);
-    },
-    {
-      onMutate: (list) => {
-        const lists = queryClient.getQueryData<List[]>("lists");
-        queryClient.setQueryData("lists", [...lists, list]);
-      },
-    }
-  );
-  return (name: string) => {
-    const list = { id: uuid(), name, created_at: new Date().toISOString() };
-    mutate(list);
-    return list;
-  };
-}
+import { useStoreContext } from "@/lib/store";
 
 /**
  * Modal for creating a new list. When typing in a new list, the user is shown
@@ -45,8 +11,8 @@ function useCreateList() {
 export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
   const [content, setContent] = useState("");
   const router = useRouter();
-  const createList = useCreateList();
-  const { data: lists } = useLists();
+  const store = useStoreContext();
+  const lists = useLists(store);
   const modalRef = useRef<HTMLDivElement>();
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,7 +67,7 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
           <button
             className="text-gray-500"
             onClick={async () => {
-              const list = createList(content);
+              const list = store.addList({ name: content });
               // TODO: should await before redirecting?
               router.push(`/lists/${list.id}`);
               onClose();

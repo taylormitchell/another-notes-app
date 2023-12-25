@@ -4,6 +4,7 @@ export type Note = {
   created_at: string;
   updated_at: string;
 };
+
 export type List = {
   id: string;
   name: string;
@@ -20,3 +21,5 @@ export type ListEntry = {
   created_at: string;
   updated_at: string;
 };
+
+export type NoteWithPosition = Note & { position: string };
