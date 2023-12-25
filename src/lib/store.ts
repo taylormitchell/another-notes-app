@@ -112,8 +112,13 @@ export class Store {
     };
   };
 
-  addNote({ id = uuid(), content = "", created_at = new Date().toISOString() } = {}) {
-    const note = { id, content, created_at, updated_at: created_at };
+  addNote({
+    id = uuid(),
+    content = "",
+    created_at = new Date().toISOString(),
+    updated_at = "", // TODO
+  } = {}) {
+    const note = { id, content, created_at, updated_at: updated_at || created_at };
     this.exec("INSERT INTO Note (id, content, created_at, updated_at) VALUES (?, ?, ?, ?)", [
       note.id,
       note.content,
@@ -152,9 +157,9 @@ export class Store {
     return result[0];
   }
 
-  addList({ id = uuid(), name = "" } = {}) {
+  addList({ id = uuid(), name = "", created_at = "", updated_at = "" } = {}) {
     const now = new Date().toISOString();
-    const list = { id, name, created_at: now, updated_at: now };
+    const list = { id, name, created_at: created_at || now, updated_at: updated_at || now };
     this.exec("INSERT INTO List (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)", [
       list.id,
       list.name,

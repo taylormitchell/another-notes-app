@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS ListEntry (
     child_list_id TEXT,
     position TEXT NOT NULL,
     created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
     FOREIGN KEY (parent_list_id) REFERENCES List(id),
     FOREIGN KEY (child_note_id) REFERENCES Note(id),
     FOREIGN KEY (child_list_id) REFERENCES List(id)
