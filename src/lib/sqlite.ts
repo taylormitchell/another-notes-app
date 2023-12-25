@@ -1,6 +1,7 @@
 import initSqlJs from "sql.js";
+import path from "path";
 
-const sqlInitScript = `
+export const sqlInitScript = `
 -- Create the 'Note' table
 CREATE TABLE IF NOT EXISTS Note (
     id TEXT PRIMARY KEY,
@@ -51,13 +52,31 @@ BEGIN
     DELETE FROM ListEntry WHERE child_note_id = OLD.id;
 END;
 `;
-export async function createSqlite() {
+
+export async function createBackendSqlite(data?: ArrayLike<number> | Buffer | null | undefined) {
+  const SQL = await initSqlJs({
+    locateFile: (file) => path.join(process.cwd(), "node_modules/sql.js/dist", file),
+  });
+  if (data) {
+    return new SQL.Database(data);
+  } else {
+    const sqlite = new SQL.Database();
+    sqlite.run(sqlInitScript); // Run the query without returning anything
+    return sqlite;
+  }
+}
+
+export async function createFrontendSqlite(data?: ArrayLike<number> | Buffer | null | undefined) {
   const SQL = await initSqlJs({
     // Required to load the wasm binary asynchronously. Of course, you can host it wherever you want
     // You can omit locateFile completely when running in node
     locateFile: (file) => `https://sql.js.org/dist/${file}`,
   });
-  const sqlite = new SQL.Database();
-  sqlite.run(sqlInitScript); // Run the query without returning anything
-  return sqlite;
+  if (data) {
+    return new SQL.Database(data);
+  } else {
+    const sqlite = new SQL.Database();
+    sqlite.run(sqlInitScript); // Run the query without returning anything
+    return sqlite;
+  }
 }

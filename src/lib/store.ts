@@ -2,8 +2,8 @@ import { Note, List, ListEntry, NoteWithPosition } from "../types";
 import { Database, BindParams } from "sql.js";
 import { generatePositionBetween, uuid } from "./utils";
 import { createContext, useContext, useState, useEffect } from "react";
-import { createSqlite } from "./sqlite";
-import { data } from "./import";
+import { createFrontendSqlite } from "./sqlite";
+import axios from "axios";
 
 type Operation = "create" | "updated" | "delete";
 
@@ -383,36 +383,13 @@ export const useStore = ():
     } => {
   const [store, setStore] = useState<Store | null>(null);
   useEffect(() => {
-    createSqlite().then((db) => {
+    (async () => {
+      const response = await axios.get("/api/sqlite", { responseType: "arraybuffer" });
+      const array = new Uint8Array(response.data);
+      const db = await createFrontendSqlite(array);
       const store = new Store(db);
-
-      store.exec(
-        `insert into note (id, content, created_at, updated_at)
-         values ${data.notes.map(() => `(?, ?, ?, ?)`).join(", ")};`,
-        data.notes.flatMap((note) => [note.id, note.content, note.created_at, note.updated_at])
-      );
-      store.exec(
-        `insert into list (id, name, created_at, updated_at)
-           values ${data.lists.map(() => `(?, ?, ?, ?)`).join(", ")};`,
-        data.lists.flatMap((list) => [list.id, list.name, list.created_at, list.created_at])
-      );
-      store.exec(
-        `insert into listentry (id, parent_list_id, child_note_id, child_list_id, position, created_at, updated_at)
-              values ${data.list_entries.map(() => `(?, ?, ?, ?, ?, ?, ?)`).join(", ")};`,
-        data.list_entries.flatMap((entry) => [
-          entry.id,
-          entry.parent_list_id,
-          entry.child_note_id,
-          entry.child_list_id,
-          entry.position,
-          entry.created_at,
-          entry.created_at,
-        ])
-      );
-
-      setStore(new Store(db));
-      (window as any).store = store;
-    });
+      setStore(store);
+    })();
   }, []);
   if (!store) {
     return { store: null, isLoading: true };
