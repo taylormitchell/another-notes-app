@@ -4,8 +4,13 @@ import { downloadSqlite, uploadSqlite } from "./s3";
 
 const sqliteFile = "data.sqlite";
 
+/**
+ * This is a promise that resolves to a sqlite3 database.
+ * It is initialized with the sqlite database from s3.
+ *
+ * TODO - maybe should download from s3 every time?
+ */
 const sqlitePromise = (async () => {
-  // todo - maybe should download from s3 every time?
   if (fs.existsSync(sqliteFile)) {
     return new sqlite3.Database(sqliteFile);
   } else {
@@ -14,17 +19,6 @@ const sqlitePromise = (async () => {
     return new sqlite3.Database(sqliteFile);
   }
 })();
-
-// Upload sqlite database to s3 every 5 minutes
-// setInterval(() => {
-//   try {
-//     const data = fs.readFileSync(sqliteFile);
-//     upload(data);
-//     console.log("uploaded sqlite database to s3");
-//   } catch (e) {
-//     console.error("error uploading sqlite database to s3", e);
-//   }
-// }, 1000 * 60 * 5); // every 5 minutes
 
 export default async function handler(req: any, res: any) {
   if (req.method === "GET") {
@@ -38,6 +32,8 @@ export default async function handler(req: any, res: any) {
       const { sql, params } = req.body;
       console.log("executing sql: ", { sql, params });
       sqlite.run(sql, params);
+      // Save the sqlite file to s3 after every write
+      // TODO - maybe we should do this periodically instead?
       uploadSqlite(fs.readFileSync(sqliteFile));
       res.status(200).send("ok");
     } catch (e) {
