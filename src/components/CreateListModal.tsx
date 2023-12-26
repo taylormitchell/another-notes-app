@@ -13,7 +13,7 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
   const router = useRouter();
   const store = useStoreContext();
   const lists = useLists(store);
-  const modalRef = useRef<HTMLDivElement>();
+  const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -34,7 +34,7 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-64 bg-white rounded-lg p-3" ref={modalRef}>
+      <div ref={modalRef} className="w-64 bg-white rounded-lg p-3">
         <input
           className="p-4 border h-4"
           onChange={(e) => setContent(e.currentTarget.value)}

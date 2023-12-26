@@ -62,11 +62,7 @@ export function useListNotes(store: Store, listId: string) {
         (event.type === "listentry" && event.parent_list_id === listId)
       );
     },
-    () =>
-      store
-        .getNotesInList(listId)
-        .map((id) => store.getNote(id))
-        .filter((n): n is Note => !!n)
+    () => store.getNotesInList(listId)
   );
 }
 

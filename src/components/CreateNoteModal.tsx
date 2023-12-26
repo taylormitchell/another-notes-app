@@ -4,12 +4,12 @@ import { useLists } from "@/lib/hooks";
 
 export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [content, setContent] = useState("");
-  const modalRef = useRef<HTMLDivElement>();
+  const modalRef = useRef<HTMLDivElement>(null);
   const store = useStoreContext();
   const lists = useLists(store);
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [listSelectionOpen, setListSelectionOpen] = useState(false);
-  const listSelectionRef = useRef<HTMLSelectElement>();
+  const listSelectionRef = useRef<HTMLSelectElement>(null);
 
   const close = () => {
     onClose();

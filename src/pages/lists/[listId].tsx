@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { useList, useListChildren } from "@/lib/hooks";
 import { useStoreContext } from "@/lib/store";
+import { NoteCard } from "@/components/NoteCard";
 
 export default function List() {
   const router = useRouter();
@@ -92,30 +93,7 @@ export default function List() {
           >
             {child.type === "note" ? (
               <>
-                <div className="rounded overflow-hidden shadow-md bg-white">
-                  <div
-                    className="p-4"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      const content = e.currentTarget.textContent ?? "";
-                      store.updateNote({ id: child.id, content });
-                    }}
-                    // delete on backspace if empty
-                    onKeyDown={(e) => {
-                      if (e.key === "Backspace" && e.currentTarget.textContent === "") {
-                        e.preventDefault();
-                        store.deleteNote(child.id);
-                      }
-                    }}
-                    dangerouslySetInnerHTML={{ __html: child.content }}
-                  />
-                  <div className="text-gray-600 text-sm">
-                    <div>
-                      {new Date(child.created_at).toLocaleString()} ({child.position})
-                    </div>
-                  </div>
-                </div>
+                <NoteCard note={child} position={child.position} />
                 <button
                   className="w-full h-4 hover:bg-blue-100"
                   onClick={() => {

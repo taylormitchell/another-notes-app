@@ -4,7 +4,7 @@ import { Sidebar as SidebarIcon } from "react-feather";
 
 const Sidebar = ({ openModal }: { openModal: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const sidebarRef = useRef(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // Close the sidebar if clicked outside

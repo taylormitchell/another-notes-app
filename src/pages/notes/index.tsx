@@ -1,3 +1,4 @@
+import { NoteCard } from "@/components/NoteCard";
 import { useNotes } from "@/lib/hooks";
 import { useStoreContext } from "@/lib/store";
 
@@ -11,21 +12,7 @@ export default function Notes() {
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .map((note) => (
             <li key={note.id}>
-              <div className="p-3 space-y-2 rounded overflow-hidden shadow-md bg-white border border-gray-300">
-                <p
-                  className="w-full"
-                  contentEditable
-                  suppressContentEditableWarning
-                  dangerouslySetInnerHTML={{ __html: note.content }}
-                  onBlur={(e) => {
-                    const content = e.currentTarget.textContent ?? "";
-                    store.updateNote({ id: note.id, content });
-                  }}
-                />
-                <div className="text-gray-600 text-sm">
-                  {new Date(note.created_at).toLocaleString()}
-                </div>
-              </div>
+              <NoteCard note={note} />
             </li>
           ))}
       </ul>
