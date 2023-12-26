@@ -1,7 +1,7 @@
 # maybe broken right now
 source .env.production
 npm run build
-tar -czvf deploy.tar.gz .next node_modules package.json .env.production
+tar -czvf deploy.tar.gz .next package.json .env.production
 scp deploy.tar.gz $DROPLET_USER@$DROPLET_IP:~/deploy.tar.gz
 rm deploy.tar.gz
 ssh $DROPLET_USER@$DROPLET_IP \
@@ -10,5 +10,6 @@ ssh $DROPLET_USER@$DROPLET_IP \
     "rm deploy.tar.gz && "\
     "cd code/another-notes-app && "\
     "PATH=/home/$DROPLET_USER/.nvm/versions/node/v17.7.1/bin:$PATH && "\
+    "npm install --omit=dev && "\
     "pm2 delete another-notes-app && "\
     "pm2 start \"npx next start -p 3001\" --name \"another-notes-app\""
