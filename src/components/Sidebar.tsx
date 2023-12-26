@@ -40,6 +40,7 @@ const Sidebar = ({ openModal }: { openModal: () => void }) => {
             { name: "Home", handler: () => router.push("/") },
             { name: "Lists", handler: () => router.push("/lists") },
             { name: "Notes", handler: () => router.push("/notes") },
+            { name: "Search", handler: () => router.push("/search") },
             { name: "Create Modal", handler: openModal },
           ].map(({ name, handler }) => (
             <button
