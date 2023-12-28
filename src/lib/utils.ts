@@ -1,13 +1,7 @@
 import { v4 } from "uuid";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 import { generateKeyBetween } from "fractional-indexing";
 
 export const uuid = v4;
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 /**
  * Same as {@link generateKeyBetween}, but doesn't throw if a and b are equal.

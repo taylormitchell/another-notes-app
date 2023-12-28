@@ -1,23 +1,20 @@
 import fs from "fs";
 import sqlite3 from "sqlite3";
 import { downloadSqlite, uploadSqlite } from "./s3";
+import { backend_env } from "./backend_env";
 
-const sqliteFile = "data.sqlite";
+const sqliteFile = backend_env.FILE_NAME;
 
 /**
  * This is a promise that resolves to a sqlite3 database.
  * It is initialized with the sqlite database from s3.
  *
- * TODO - maybe should download from s3 every time?
+ * TODO - should download from s3 every time?
  */
 const sqlitePromise = (async () => {
-  if (fs.existsSync(sqliteFile)) {
-    return new sqlite3.Database(sqliteFile);
-  } else {
-    const buf = await downloadSqlite();
-    fs.writeFileSync(sqliteFile, buf);
-    return new sqlite3.Database(sqliteFile);
-  }
+  const buf = await downloadSqlite();
+  fs.writeFileSync(sqliteFile, buf);
+  return new sqlite3.Database(sqliteFile);
 })();
 
 export default async function handler(req: any, res: any) {

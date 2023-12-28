@@ -6,7 +6,7 @@ function getEnvVariable(key: string): string {
   return value;
 }
 
-export const env = {
+export const backend_env = {
   ACCESS_KEY_ID: getEnvVariable("ACCESS_KEY_ID"),
   SECRET_ACCESS_KEY: getEnvVariable("SECRET_ACCESS_KEY"),
   BUCKET_NAME: getEnvVariable("BUCKET_NAME"),

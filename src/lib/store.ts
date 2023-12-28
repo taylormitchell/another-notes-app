@@ -4,6 +4,7 @@ import { generatePositionBetween, uuid } from "./utils";
 import { createContext, useContext, useState, useEffect } from "react";
 import { createFrontendSqlite } from "./sqlite";
 import axios from "axios";
+import { frontend_env } from "./frontend_env";
 
 type Operation = "create" | "updated" | "delete";
 
@@ -394,6 +395,10 @@ export const useStore = ():
   const [store, setStore] = useState<Store | null>(null);
   useEffect(() => {
     (async () => {
+      if (frontend_env.isPersistenceDisabled) {
+        setStore(new Store(await createFrontendSqlite()));
+        return;
+      }
       const response = await axios.get("/api/sqlite", { responseType: "arraybuffer" });
       const array = new Uint8Array(response.data);
       const db = await createFrontendSqlite(array);
