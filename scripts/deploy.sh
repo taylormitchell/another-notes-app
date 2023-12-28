@@ -1,7 +1,7 @@
 # maybe broken right now
-source .env.production
+source .env
 npm run build
-tar -czvf deploy.tar.gz .next package.json .env.production
+tar -czvf deploy.tar.gz .next package.json .env
 scp deploy.tar.gz $DROPLET_USER@$DROPLET_IP:~/deploy.tar.gz
 rm deploy.tar.gz
 ssh $DROPLET_USER@$DROPLET_IP \
