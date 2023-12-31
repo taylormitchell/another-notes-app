@@ -57,7 +57,8 @@ export async function createFrontendSqlite(data?: ArrayLike<number> | Buffer | n
   const SQL = await initSqlJs({
     // Required to load the wasm binary asynchronously. Of course, you can host it wherever you want
     // You can omit locateFile completely when running in node
-    locateFile: (file) => `https://sql.js.org/dist/${file}`,
+    // locateFile: (file) => `https://sql.js.org/dist/${file}`,
+    locateFile: (file) => `http://localhost:3005/${file}`,
   });
   if (data) {
     return new SQL.Database(data);

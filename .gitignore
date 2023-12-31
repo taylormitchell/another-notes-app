@@ -8,3 +8,4 @@ node_modules
 data.json
 data.sqlite
 import.ts
+sql-wasm.wasm
