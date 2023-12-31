@@ -1,3 +1,4 @@
+import { CreateButton } from "@/components/CreateButton";
 import { NoteCard } from "@/components/NoteCard";
 import { useNotes } from "@/lib/hooks";
 import { useStoreContext } from "@/lib/store";
@@ -16,6 +17,11 @@ export default function Notes() {
             </li>
           ))}
       </ul>
+      <CreateButton
+        onClick={() => {
+          store.addNote();
+        }}
+      />
     </div>
   );
 }

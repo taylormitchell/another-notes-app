@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLists } from "@/lib/hooks";
 import { useRouter } from "next/router";
 import { useStoreContext } from "@/lib/store";
+import { useModalsContext } from "@/lib/modalContext";
 
 /**
  * Modal for creating a new list. When typing in a new list, the user is shown
  * a list of existing lists that match the input. If the user selects one of
  * these lists, then the user opens that list instead of creating a new one.
  */
-export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
+export const CreateListModal = () => {
+  const { isOpen, close: onClose } = useModalsContext().createList;
   const [content, setContent] = useState("");
   const router = useRouter();
   const store = useStoreContext();
@@ -31,6 +33,8 @@ export const CreateListModal = ({ onClose }: { onClose: () => void }) => {
   // Input element with list of matching lists below it.
   // Tapping an option in the list opens that list.
   // Tapping create creates a new list.
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">

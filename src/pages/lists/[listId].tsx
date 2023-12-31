@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useList, useListChildren } from "@/lib/hooks";
 import { useStoreContext } from "@/lib/store";
 import { NoteCard } from "@/components/NoteCard";
+import { CreateButton } from "@/components/CreateButton";
+import { useCallback } from "react";
 
 export default function List() {
   const router = useRouter();
@@ -18,6 +20,17 @@ export default function List() {
   if (!list) {
     return <div>List not found</div>;
   }
+
+  const addNoteAtTop = () => {
+    store.addNote({
+      listPositions: [
+        {
+          id: list.id,
+          position: generatePositionBetween(null, sortedChildren[0]?.position ?? null),
+        },
+      ],
+    });
+  };
 
   return (
     // center everything
@@ -61,19 +74,7 @@ export default function List() {
 
       <ul className="w-full space-y-4 p-4">
         <li key="top-bottom">
-          <button
-            className="w-full h-4 hover:bg-blue-100"
-            onClick={() => {
-              store.addNote({
-                listPositions: [
-                  {
-                    id: list.id,
-                    position: generatePositionBetween(null, sortedChildren[0]?.position ?? null),
-                  },
-                ],
-              });
-            }}
-          />
+          <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
         </li>
         {sortedChildren.map((child, i) => (
           <li
@@ -123,6 +124,7 @@ export default function List() {
           </li>
         ))}
       </ul>
+      <CreateButton onClick={addNoteAtTop} />
     </div>
   );
 }

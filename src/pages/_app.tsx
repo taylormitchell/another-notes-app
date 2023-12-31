@@ -6,6 +6,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { CreateListModal } from "@/components/CreateListModal";
 import { StoreContext, useStore } from "@/lib/store";
+import { CreateButton } from "@/components/CreateButton";
+import { ModalsContext, ModalsProvider } from "@/lib/modalContext";
 
 function pathToViewType(path: string) {
   switch (path) {
@@ -35,6 +37,7 @@ function pathToViewType(path: string) {
 const App = ({ Component, pageProps }) => {
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [isListModalOpen, setIsListModalOpen] = useState(false);
+
   const router = useRouter();
   const viewType = pathToViewType(router.pathname);
   const { store, isLoading } = useStore();
@@ -47,34 +50,30 @@ const App = ({ Component, pageProps }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       <StoreContext.Provider value={store}>
-        <div className="flex flex-col min-h-screen min-w-screen">
-          <header className="flex flex-row">
-            <div className="flex flex-row align-center">
-              <Sidebar openModal={() => setIsNoteModalOpen(true)} />
-              <div className="flex flex-col justify-center">
-                <h1>{viewType.title}</h1>
+        <ModalsProvider>
+          <div className="flex flex-col min-h-screen min-w-screen">
+            <header className="flex flex-row">
+              <div className="flex flex-row align-center">
+                <Sidebar openModal={() => setIsNoteModalOpen(true)} />
+                <div className="flex flex-col justify-center">
+                  <h1>{viewType.title}</h1>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-row flex-grow justify-end items-center">
-              {viewType.type === "lists" && (
-                <button className="p-2" onClick={() => setIsListModalOpen(true)}>
-                  Create List
-                </button>
-              )}
-            </div>
-          </header>
-          <main>
-            <Component {...pageProps} />
-          </main>
-          <CreateNoteModal isOpen={isNoteModalOpen} onClose={() => setIsNoteModalOpen(false)} />
-          {isListModalOpen && <CreateListModal onClose={() => setIsListModalOpen(false)} />}
-          <button
-            className="fixed bottom-4 right-4 w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center"
-            onClick={() => setIsNoteModalOpen(true)}
-          >
-            +
-          </button>
-        </div>
+              <div className="flex flex-row flex-grow justify-end items-center">
+                {viewType.type === "lists" && (
+                  <button className="p-2" onClick={() => setIsListModalOpen(true)}>
+                    Create List
+                  </button>
+                )}
+              </div>
+            </header>
+            <main>
+              <Component {...pageProps} />
+            </main>
+            <CreateNoteModal />
+            <CreateListModal />
+          </div>
+        </ModalsProvider>
       </StoreContext.Provider>
     </>
   );

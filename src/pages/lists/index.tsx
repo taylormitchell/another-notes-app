@@ -2,10 +2,13 @@ import Link from "next/link";
 import { uuid } from "../../lib/utils";
 import { useStoreContext } from "@/lib/store";
 import { useLists } from "@/lib/hooks";
+import { useModalsContext } from "@/lib/modalContext";
+import { CreateButton } from "@/components/CreateButton";
 
 export default function Lists() {
   const store = useStoreContext();
   const lists = useLists(store);
+  const listModal = useModalsContext().createList;
   return (
     <div>
       <ul>
@@ -36,6 +39,7 @@ export default function Lists() {
       >
         +
       </button>
+      <CreateButton onClick={listModal.open} />
     </div>
   );
 }

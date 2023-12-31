@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useStoreContext } from "@/lib/store";
 import { useLists } from "@/lib/hooks";
+import { useModalsContext } from "@/lib/modalContext";
 
-export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const CreateNoteModal = () => {
+  const { isOpen, close } = useModalsContext().createNote;
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const store = useStoreContext();
@@ -11,15 +13,15 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [listSelectionOpen, setListSelectionOpen] = useState(false);
   const listSelectionRef = useRef<HTMLSelectElement>(null);
 
-  const close = () => {
-    onClose();
+  const closeModal = () => {
+    close();
     setListSelectionOpen(false);
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        close();
+        closeModal();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -56,7 +58,7 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
           <button onClick={() => setListSelectionOpen(true)}>Add to list</button>
         )}
         <div className="flex justify-end space-x-4">
-          <button className="text-gray-500" onClick={close}>
+          <button className="text-gray-500" onClick={closeModal}>
             Cancel
           </button>
           <button
@@ -66,7 +68,7 @@ export const CreateNoteModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
                 ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
                 : [];
               store.addNote({ content, listPositions: listIds.map((id) => ({ id })) });
-              close();
+              closeModal();
             }}
           >
             Create
