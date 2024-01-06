@@ -1,44 +1,17 @@
 {
-  "name": "client",
-  "version": "0.1.0",
-  "private": true,
+  "name": "another-notes-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "next dev -p 3005",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "migrate": "prisma migrate dev",
-    "deploy": "bash ./scripts/deploy.sh"
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "build": "bash scripts/prod.sh --build",
+    "start": "bash scripts/prod.sh --build --run",
+    "deploy": "bash scripts/prod.sh --build --deploy"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.478.0",
-    "autoprefixer": "^10.4.14",
-    "axios": "^1.5.0",
-    "crypto-browserify": "^3.12.0",
-    "express": "^4.18.2",
-    "fractional-indexing": "^3.2.0",
-    "next": "13.3.4",
-    "path-browserify": "^1.0.1",
-    "postcss": "^8.4.25",
-    "postcss-flexbugs-fixes": "^5.0.2",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-feather": "^2.0.10",
-    "react-query": "^3.39.3",
-    "sql.js": "^1.9.0",
-    "sqlite3": "^5.1.6",
-    "stream-browserify": "^3.0.0",
-    "tailwind-merge": "^1.14.0",
-    "tailwindcss": "^3.3.2",
-    "tailwindcss-animate": "^1.0.7",
-    "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "20.10.5",
-    "@types/pg": "^8.10.2",
-    "@types/react": "18.2.45",
-    "@types/sql.js": "^1.4.9",
-    "nodemon": "^3.0.1",
-    "typescript": "5.3.3"
+    "concurrently": "^8.2.2"
   }
 }

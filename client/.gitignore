@@ -10,13 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-dist.zip
 *.local
-.env*
-*.sqlite
-*.tar.gz
 
 # Editor directories and files
+.vscode/*
+!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -24,5 +22,3 @@ dist.zip
 *.njsproj
 *.sln
 *.sw?
-
-.archive
