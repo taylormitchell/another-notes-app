@@ -7,6 +7,7 @@ import { CreateNoteModal } from "./components/CreateNoteModal";
 import { ErrorBoundary } from "react-error-boundary";
 import Lists from "./pages/Lists";
 import List from "./pages/List";
+import Search from "./pages/Search";
 
 const App = () => {
   const { store, isLoading } = useStore();
@@ -24,6 +25,8 @@ const App = () => {
                 <Route path="/notes" element={<Notes />} />
                 <Route path="/lists" element={<Lists />} />
                 <Route path="/lists/:id" element={<List />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="*" element={<div>Page not found</div>} />
               </Route>
             </Routes>
           </BrowserRouter>

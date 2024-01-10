@@ -12,23 +12,25 @@ export default function Lists() {
   return (
     <div>
       <ul>
-        {lists.map((list) => (
-          <li key={list.id}>
-            <span className="flex justify-between items-center">
-              <Link to={`/lists/${list.id}`}>
-                {list.name ? <b>{list.name}</b> : <em>untitled</em>}
-              </Link>
-              <button
-                className="w-8"
-                onClick={() => {
-                  store.deleteList(list.id);
-                }}
-              >
-                x
-              </button>
-            </span>
-          </li>
-        ))}
+        {lists
+          .filter((list) => !!list.name)
+          .map((list) => (
+            <li key={list.id}>
+              <span className="flex justify-between items-center">
+                <Link to={`/lists/${list.id}`}>
+                  {list.name ? <b>{list.name}</b> : <em>untitled</em>}
+                </Link>
+                <button
+                  className="w-8"
+                  onClick={() => {
+                    store.deleteList(list.id);
+                  }}
+                >
+                  x
+                </button>
+              </span>
+            </li>
+          ))}
       </ul>
       <button
         onClick={() => {
