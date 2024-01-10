@@ -1,3 +1,5 @@
+set -e
+
 usage() {
   echo "Usage: ./scripts/build.sh [options]"
   echo "Options:"

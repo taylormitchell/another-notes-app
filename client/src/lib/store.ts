@@ -363,9 +363,9 @@ export class Store {
       listIds
     );
     const notesByListId = result.reduce(
-      (acc, { parent_list_id, id, content, created_at, updated_at, position }) => {
+      (acc, { parent_list_id, id, content, created_at, updated_at, position, upvotes }) => {
         if (!acc[parent_list_id]) acc[parent_list_id] = [];
-        acc[parent_list_id].push({ id, content, created_at, updated_at, position });
+        acc[parent_list_id].push({ id, content, created_at, updated_at, position, upvotes });
         return acc;
       },
       {} as Record<string, (Note & { position: string })[]>
