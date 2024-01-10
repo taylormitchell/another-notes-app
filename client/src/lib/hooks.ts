@@ -26,6 +26,14 @@ export function useNotes(store: Store) {
   );
 }
 
+export function useNote(store: Store, noteId: string) {
+  return useSubscribeToEvent(
+    store,
+    (e) => e.type === "note" && e.id === noteId,
+    () => store.getNote(noteId)
+  );
+}
+
 export function useNotesWithParentIds(store: Store): (Note & { parentIds: string[] })[] {
   return useSubscribeToEvent(
     store,

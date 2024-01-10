@@ -1,6 +1,7 @@
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
-import { ArrowDown, ArrowUp } from "react-feather";
+import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
+import { Link } from "react-router-dom";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
@@ -31,7 +32,7 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             .join(""),
         }}
       />
-      <div className="text-gray-600 text-sm flex items-center p-2">
+      <div className="text-gray-600 text-sm flex items-center p-2 gap-2">
         {position ?? (
           <div>
             {new Date(note.created_at).toLocaleString()} ({position})
@@ -54,6 +55,11 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             <ArrowDown size={16} />
           </button>
           <span>({note.upvotes})</span>
+        </div>
+        <div>
+          <Link to={`/notes/${note.id}`}>
+            <Maximize2 size={16} />
+          </Link>
         </div>
       </div>
     </div>

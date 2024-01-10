@@ -8,6 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import Lists from "./pages/Lists";
 import List from "./pages/List";
 import Search from "./pages/Search";
+import Note from "./pages/Note";
 
 const App = () => {
   const { store, isLoading } = useStore();
@@ -23,6 +24,7 @@ const App = () => {
               <Route path="/" element={<Layout />}>
                 <Route index element={<div>Home</div>} />
                 <Route path="/notes" element={<Notes />} />
+                <Route path="/notes/:id" element={<Note />} />
                 <Route path="/lists" element={<Lists />} />
                 <Route path="/lists/:id" element={<List />} />
                 <Route path="/search" element={<Search />} />
