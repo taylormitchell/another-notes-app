@@ -3,6 +3,7 @@ export type Note = {
   content: string;
   created_at: string;
   updated_at: string;
+  upvotes: number;
 };
 
 export type List = {

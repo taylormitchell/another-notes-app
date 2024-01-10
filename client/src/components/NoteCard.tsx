@@ -1,5 +1,6 @@
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
+import { ArrowDown, ArrowUp } from "react-feather";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
@@ -30,12 +31,30 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             .join(""),
         }}
       />
-      <div className="text-gray-600 text-sm">
+      <div className="text-gray-600 text-sm flex items-center p-2">
         {position ?? (
           <div>
             {new Date(note.created_at).toLocaleString()} ({position})
           </div>
         )}
+        {/* upvote button */}
+        <div>
+          <button
+            onClick={() => {
+              store.upvoteNote(note.id);
+            }}
+          >
+            <ArrowUp size={16} />
+          </button>
+          <button
+            onClick={() => {
+              store.downvoteNote(note.id);
+            }}
+          >
+            <ArrowDown size={16} />
+          </button>
+          <span>({note.upvotes})</span>
+        </div>
       </div>
     </div>
   );

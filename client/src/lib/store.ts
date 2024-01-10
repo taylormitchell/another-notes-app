@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { createSqlite } from "./sqlite";
 import { env } from "./env";
 import { api } from "./api";
+import { log } from "./log";
 
 type Operation = "create" | "updated" | "delete";
 
@@ -36,14 +37,14 @@ export class Store {
     private db: Database,
     private sqlToApi: (sql: string, params?: BindParams | undefined) => void = () => {}
   ) {
-    this.createTriggers();
+    this.addTriggers();
   }
 
   /**
    * Create a function that can be used in SQLite to emit events.
    * This is used to trigger updates in the UI.
    */
-  createTriggers() {
+  addTriggers() {
     this.db.create_function(
       "emit_list_or_note_event",
       (type: "note" | "list", operation: Operation, id: string) => {
@@ -105,10 +106,10 @@ export class Store {
         });
         return obj as T;
       });
-      console.log("exec", { sql, params, count: values.length });
+      log("exec").info({ sql, params, count: values.length });
       return values;
     } catch (e) {
-      console.error("exec", { sql, params, error: e });
+      log("exec").error({ sql, params, error: e });
       throw e;
     }
   };
@@ -378,6 +379,20 @@ export class Store {
       [listId, noteId]
     );
     return !!res.length;
+  }
+
+  upvoteNote(noteId: string) {
+    this.exec("UPDATE Note SET upvotes = upvotes + 1, updated_at = ? WHERE id = ?", [
+      new Date().toISOString(),
+      noteId,
+    ]);
+  }
+
+  downvoteNote(noteId: string) {
+    this.exec("UPDATE Note SET upvotes = upvotes - 1, updated_at = ? WHERE id = ?", [
+      new Date().toISOString(),
+      noteId,
+    ]);
   }
 }
 

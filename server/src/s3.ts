@@ -10,6 +10,7 @@ export const s3 = new S3Client({
 });
 
 export const uploadSqlite = async (data: Buffer) => {
+  console.log("uploading sqlite file to s3");
   const command = new PutObjectCommand({
     Bucket: env.BUCKET_NAME,
     Key: env.FILE_NAME,
