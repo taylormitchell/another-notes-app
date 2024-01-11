@@ -11,7 +11,6 @@ interface Command {
 export const CommandBar: React.FC = () => {
   const navigate = useNavigate();
   const { isOpen, open, close } = useModalsContext().commandbar;
-  console.log(isOpen);
   const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const allCommands: Command[] = useMemo(
