@@ -1,28 +1,41 @@
+import { useRef } from "react";
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
 import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
+import { useDebouncedCallback } from "use-debounce";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
+  const contentRef = useRef<HTMLDivElement>(null);
+  function save() {
+    if (!contentRef.current) return;
+    const lines: string[] = [];
+    contentRef.current.childNodes.forEach((node) => {
+      lines.push(node.textContent ?? "");
+    });
+    store.updateNote({
+      id: note.id,
+      content: lines.join("\n"),
+    });
+  }
+  const debouncedSave = useDebouncedCallback(save, 1000);
+
   return (
     <div className="rounded overflow-hidden shadow-md bg-white">
       <div
+        ref={contentRef}
         className="p-4"
         contentEditable
         suppressContentEditableWarning
-        onBlur={(e) => {
-          const lines: string[] = [];
-          e.currentTarget.childNodes.forEach((node) => {
-            lines.push(node.textContent ?? "");
-          });
-          store.updateNote({ id: note.id, content: lines.join("\n") });
-        }}
+        onBlur={save}
         // delete on backspace if empty
         onKeyDown={(e) => {
           if (e.key === "Backspace" && e.currentTarget.textContent === "") {
             e.preventDefault();
             store.deleteNote(note.id);
+          } else {
+            debouncedSave();
           }
         }}
         dangerouslySetInnerHTML={{
