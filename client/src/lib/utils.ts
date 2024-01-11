@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
 import { generateKeyBetween } from "fractional-indexing";
+import { useEffect } from "react";
 
 export const uuid = v4;
 
@@ -29,4 +30,20 @@ export function sortByPosition<T extends { position: string; created_at: string 
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   }
   return 0;
+}
+
+export function useHotkey(key: string | ((e: KeyboardEvent) => boolean), callback: () => void) {
+  useEffect(() => {
+    function handleHotkey(e: KeyboardEvent) {
+      const isHotkey = typeof key === "string" ? (e: KeyboardEvent) => e.key === key : key;
+      if (isHotkey(e)) {
+        e.preventDefault();
+        callback();
+      }
+    }
+    document.addEventListener("keydown", handleHotkey);
+    return () => {
+      document.removeEventListener("keydown", handleHotkey);
+    };
+  }, [key, callback]);
 }

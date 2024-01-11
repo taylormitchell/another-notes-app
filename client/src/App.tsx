@@ -9,6 +9,7 @@ import Lists from "./pages/Lists";
 import List from "./pages/List";
 import Search from "./pages/Search";
 import Note from "./pages/Note";
+import { CommandBar } from "./components/CommandBar";
 
 const App = () => {
   const { store, isLoading } = useStore();
@@ -41,12 +42,13 @@ const App = () => {
 function Layout() {
   return (
     <div>
-      <header>
+      <div className="fixed top-0 left-0 h-screen">
         <Sidebar />
-      </header>
+      </div>
       <main>
         <Outlet />
         <CreateNoteModal />
+        <CommandBar />
         {/* <CreateListModal />  */}
       </main>
     </div>
