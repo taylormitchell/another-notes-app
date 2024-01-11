@@ -6,6 +6,7 @@ import useEventListener from "../lib/useEventListener";
 
 const Sidebar = () => {
   const { isOpen, toggle, close } = useModalsContext().sidebar;
+  const commandbar = useModalsContext().commandbar;
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +43,7 @@ const Sidebar = () => {
             { name: "Notes", handler: () => navigate("/notes") },
             { name: "Lists", handler: () => navigate("/lists") },
             { name: "Search", handler: () => navigate("/search") },
+            { name: "Command Bar", handler: () => commandbar.open() },
             // { name: "Create Modal", handler: openModal },
           ].map(({ name, handler }) => (
             <button

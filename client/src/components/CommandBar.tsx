@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useHotkey } from "../lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useModalsContext } from "../lib/modalContext";
 
 interface Command {
   name: string;
@@ -7,44 +9,61 @@ interface Command {
 }
 
 export const CommandBar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isOpen, open, close } = useModalsContext().commandbar;
+  console.log(isOpen);
   const [search, setSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const commands: Command[] = [
-    {
-      name: "Notes",
-      handler: () => {
-        // TODO should be doing this with react router
-        window.location.href = "/notes";
+  const allCommands: Command[] = useMemo(
+    () => [
+      {
+        name: "Notes",
+        handler: () => navigate("/notes"),
       },
-    },
-    {
-      name: "Lists",
-      handler: () => {
-        // TODO should be doing this with react router
-        window.location.href = "/lists";
+      {
+        name: "Lists",
+        handler: () => navigate("/lists"),
       },
-    },
-  ];
+    ],
+    [navigate]
+  );
+  //   const [recentCommands, setRecentCommands] = useState<Command[]>([]);
+  const filteredCommands = useMemo(
+    () => allCommands.filter((command) => command.name.toLocaleLowerCase().includes(search)),
+    [allCommands, search]
+  );
+
+  //   const currentCommands = search ? filteredCommands : recentCommands;
+  const currentCommands = search ? filteredCommands : [];
+  const selectCommand = () => {
+    currentCommands[selectedIndex].handler();
+    setSearch("");
+    close();
+    // setRecentCommands((prev) => {
+    //   const newRecentCommands = prev.filter(
+    //     (command) => command.name !== currentCommands[selectedIndex].name
+    //   );
+    //   newRecentCommands.unshift(currentCommands[selectedIndex]);
+    //   return newRecentCommands;
+    // });
+  };
 
   useHotkey(
     (e) => e.metaKey && e.key === "k",
     () => {
-      isOpen ? setIsOpen(false) : setIsOpen(true);
+      console.log("open");
+      open();
     }
   );
   useHotkey("Escape", () => {
     setSearch("");
     if (search === "") {
-      setIsOpen(false);
+      close();
     }
   });
-  useHotkey("ArrowDown", () => setSelectedIndex((prev) => (prev + 1) % commands.length));
-  useHotkey("ArrowUp", () => setSelectedIndex((prev) => (prev - 1) % commands.length));
-  useHotkey("Enter", () => {
-    commands[selectedIndex].handler();
-    setIsOpen(false);
-  });
+  useHotkey("ArrowDown", () => setSelectedIndex((prev) => (prev + 1) % currentCommands.length));
+  useHotkey("ArrowUp", () => setSelectedIndex((prev) => (prev - 1) % currentCommands.length));
+  useHotkey("Enter", () => selectCommand());
 
   if (!isOpen) return null;
   return (
@@ -56,20 +75,23 @@ export const CommandBar: React.FC = () => {
         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
         placeholder="Type your command..."
         onChange={(e) => setSearch(e.target.value)}
+        onBlur={() => {
+          setSearch("");
+          close();
+        }}
       />
       <ul className="mt-2">
-        {commands
-          .filter((command) =>
-            search ? command.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) : true
-          )
-          .map((command, index) => (
-            <li
-              key={command.name}
-              className={`p-2 ${index === selectedIndex ? "bg-gray-200" : ""}`}
-            >
-              {command.name}
-            </li>
-          ))}
+        {currentCommands.map((command, index) => (
+          <li
+            key={command.name}
+            className={`p-2 ${index === selectedIndex ? "bg-gray-200" : ""}`}
+            onClick={() => {
+              selectCommand();
+            }}
+          >
+            {command.name}
+          </li>
+        ))}
       </ul>
     </div>
   );

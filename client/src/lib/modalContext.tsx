@@ -11,12 +11,14 @@ type Modals = {
   createNote: Modal;
   createList: Modal;
   sidebar: Modal;
+  commandbar: Modal;
 };
 
 export const ModalsContext = createContext<Modals>({
   createNote: { isOpen: false, open: () => {}, close: () => {}, toggle: () => {} },
   createList: { isOpen: false, open: () => {}, close: () => {}, toggle: () => {} },
   sidebar: { isOpen: false, open: () => {}, close: () => {}, toggle: () => {} },
+  commandbar: { isOpen: false, open: () => {}, close: () => {}, toggle: () => {} },
 });
 
 export const useModalsContext = () => {
@@ -24,7 +26,12 @@ export const useModalsContext = () => {
 };
 
 export const ModalsProvider = ({ children }: { children: ReactNode }) => {
-  const [isOpen, setIsOpen] = useState({ createNote: false, createList: false, sidebar: false });
+  const [isOpen, setIsOpen] = useState({
+    createNote: false,
+    createList: false,
+    sidebar: false,
+    commandbar: false,
+  });
   const value = {
     createNote: {
       isOpen: isOpen.createNote,
@@ -46,6 +53,12 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
         console.log("toggle");
         setIsOpen((v) => ({ ...v, sidebar: !v.sidebar }));
       },
+    },
+    commandbar: {
+      isOpen: isOpen.commandbar,
+      open: () => setIsOpen((v) => ({ ...v, commandbar: true })),
+      close: () => setIsOpen((v) => ({ ...v, commandbar: false })),
+      toggle: () => setIsOpen((v) => ({ ...v, commandbar: !v.commandbar })),
     },
   };
   return <ModalsContext.Provider value={value}>{children}</ModalsContext.Provider>;
