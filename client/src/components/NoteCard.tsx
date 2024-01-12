@@ -4,6 +4,7 @@ import { Note } from "../types";
 import { ArrowDown, ArrowUp, List, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
 import { useLists, useNoteParentIds } from "../lib/hooks";
+import { useHotkey } from "../lib/utils";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
@@ -34,15 +35,22 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
     };
   }, [save]);
 
+  useHotkey("Escape", () => {
+    if (focused) {
+      contentRef.current?.blur();
+    }
+  });
+
   return (
     <div
-      className="rounded overflow-hidden shadow-md bg-white"
+      // className="rounded overflow-hidden shadow-md bg-white"
+      className="rounded overflow-hidden bg-white"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <div
         ref={contentRef}
-        className="p-4"
+        className="note p-4"
         contentEditable
         suppressContentEditableWarning
         // delete on backspace if empty

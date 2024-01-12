@@ -39,13 +39,17 @@ export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): n
   return 0;
 }
 
-export function useHotkey(key: string | ((e: KeyboardEvent) => boolean), callback: () => void) {
+export function useHotkey(
+  key: string | ((e: KeyboardEvent) => boolean),
+  callback: () => boolean | void
+) {
   useEffect(() => {
     function handleHotkey(e: KeyboardEvent) {
       const isHotkey = typeof key === "string" ? (e: KeyboardEvent) => e.key === key : key;
       if (isHotkey(e)) {
+        const res = callback();
+        if (res === false) return;
         e.preventDefault();
-        callback();
       }
     }
     document.addEventListener("keydown", handleHotkey);

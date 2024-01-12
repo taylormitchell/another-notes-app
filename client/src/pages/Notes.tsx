@@ -6,11 +6,20 @@ import { useStoreContext } from "../lib/store";
 import { MiniSearchBar } from "../components/MiniSearchBar";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
+import { useHotkey } from "../lib/utils";
 
 export default function Notes() {
   const store = useStoreContext();
   const notes = useNotes(store);
   const [search, setSearch] = useState("");
+
+  useHotkey("n", () => {
+    const el = document.activeElement as HTMLElement;
+    if (el.tagName === "INPUT") return false;
+    if (el.contentEditable === "true") return false;
+    store.addNote();
+  });
+
   return (
     <div>
       <Header>
