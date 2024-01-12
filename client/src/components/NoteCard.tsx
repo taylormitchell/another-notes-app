@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
 import { ArrowDown, ArrowUp, List, Maximize2 } from "react-feather";
@@ -8,8 +8,9 @@ import { useLists, useNoteParentIds } from "../lib/hooks";
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
   const contentRef = useRef<HTMLDivElement>(null);
-  const lists = useLists(store);
-  const listIds = useNoteParentIds(store, note.id);
+  const [hover, setHover] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const showDetails = hover || focused;
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -34,7 +35,11 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
   }, [save]);
 
   return (
-    <div className="rounded overflow-hidden shadow-md bg-white">
+    <div
+      className="rounded overflow-hidden shadow-md bg-white"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       <div
         ref={contentRef}
         className="p-4"
@@ -47,6 +52,8 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             store.deleteNote(note.id);
           }
         }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         dangerouslySetInnerHTML={{
           __html: note.content
             .split("\n")
@@ -54,53 +61,41 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             .join(""),
         }}
       />
-      <div className="text-gray-600 text-sm flex items-center p-2 gap-2">
-        {position ?? (
+      {showDetails && (
+        <div className="text-gray-600 text-sm flex items-center p-2 gap-2">
+          {position ?? (
+            <div>
+              {new Date(note.created_at).toLocaleString()} ({position})
+            </div>
+          )}
+          {/* upvote button */}
           <div>
-            {new Date(note.created_at).toLocaleString()} ({position})
+            <button
+              onClick={() => {
+                store.upvoteNote(note.id);
+              }}
+            >
+              <ArrowUp size={16} />
+            </button>
+            <button
+              onClick={() => {
+                store.downvoteNote(note.id);
+              }}
+            >
+              <ArrowDown size={16} />
+            </button>
+            <span>({note.upvotes})</span>
           </div>
-        )}
-        {/* upvote button */}
-        <div>
-          <button
-            onClick={() => {
-              store.upvoteNote(note.id);
-            }}
-          >
-            <ArrowUp size={16} />
-          </button>
-          <button
-            onClick={() => {
-              store.downvoteNote(note.id);
-            }}
-          >
-            <ArrowDown size={16} />
-          </button>
-          <span>({note.upvotes})</span>
+          <div>
+            <Link to={`/notes/${note.id}`}>
+              <Maximize2 size={16} />
+            </Link>
+          </div>
+          {/* <div>
+            <ListSelection note={note} />
+          </div> */}
         </div>
-        <div>
-          <Link to={`/notes/${note.id}`}>
-            <Maximize2 size={16} />
-          </Link>
-        </div>
-        {/* multi-select lists the note belongs to */}
-        <div>
-          <select
-            multiple
-            value={listIds}
-            onChange={(e) => {
-              const listIds = Array.from(e.target.selectedOptions).map((option) => option.value);
-              store.setNoteParents({ noteId: note.id, listIds });
-            }}
-          >
-            {lists.map((list) => (
-              <option key={list.id} value={list.id}>
-                {list.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -146,14 +141,6 @@ function ListSelection({ note }: { note: Note }) {
           type="text"
           placeholder="Add to list..."
           className="border border-gray-300 rounded-md p-2 focus:outline-none focus:border-blue-500"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              const list = lists.find((list) => list.name === e.currentTarget.value);
-              if (list) {
-                store.addNoteToList({ noteId: note.id, listId: list.id });
-              }
-            }
-          }}
         />
       </div>
     </div>

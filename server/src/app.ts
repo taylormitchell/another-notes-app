@@ -70,8 +70,12 @@ export const sqlitePromise = (async () => {
 let isDirty = false;
 setInterval(() => {
   if (isDirty) {
-    uploadSqlite(fs.readFileSync(sqliteFile));
-    isDirty = false;
+    try {
+      uploadSqlite(fs.readFileSync(sqliteFile));
+      isDirty = false;
+    } catch (e) {
+      console.log(e);
+    }
   }
 }, 1 * 60 * 1000); // 1 minute
 process.on("exit", () => {

@@ -266,6 +266,13 @@ export class Store {
     );
   }
 
+  removeNoteFromList({ noteId, listId }: { noteId: string; listId: string }) {
+    this.exec("DELETE FROM ListEntry WHERE child_note_id = ? AND parent_list_id = ?", [
+      noteId,
+      listId,
+    ]);
+  }
+
   /**
    * Provide an array of list ids which the note should belong to.
    * If the note is already in a list, leave it.
