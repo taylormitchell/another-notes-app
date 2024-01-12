@@ -68,41 +68,43 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
             .join(""),
         }}
       />
-      {showDetails && (
-        <div className="text-gray-600 text-sm flex items-center p-2 gap-2">
-          {position ?? (
+      <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
+        {showDetails && (
+          <>
+            {position ?? (
+              <div>
+                {new Date(note.created_at).toLocaleString()} ({position})
+              </div>
+            )}
+            {/* upvote button */}
             <div>
-              {new Date(note.created_at).toLocaleString()} ({position})
+              <button
+                onClick={() => {
+                  store.upvoteNote(note.id);
+                }}
+              >
+                <ArrowUp size={16} />
+              </button>
+              <button
+                onClick={() => {
+                  store.downvoteNote(note.id);
+                }}
+              >
+                <ArrowDown size={16} />
+              </button>
+              <span>({note.upvotes})</span>
             </div>
-          )}
-          {/* upvote button */}
-          <div>
-            <button
-              onClick={() => {
-                store.upvoteNote(note.id);
-              }}
-            >
-              <ArrowUp size={16} />
-            </button>
-            <button
-              onClick={() => {
-                store.downvoteNote(note.id);
-              }}
-            >
-              <ArrowDown size={16} />
-            </button>
-            <span>({note.upvotes})</span>
-          </div>
-          <div>
-            <Link to={`/notes/${note.id}`}>
-              <Maximize2 size={16} />
-            </Link>
-          </div>
-          {/* <div>
+            <div>
+              <Link to={`/notes/${note.id}`}>
+                <Maximize2 size={16} />
+              </Link>
+            </div>
+            {/* <div>
             <ListSelection note={note} />
           </div> */}
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
