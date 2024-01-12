@@ -1,14 +1,14 @@
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
 import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
   const contentRef = useRef<HTMLDivElement>(null);
-  function save() {
+
+  const save = useCallback(() => {
     if (!contentRef.current) return;
     const lines: string[] = [];
     contentRef.current.childNodes.forEach((node) => {
@@ -18,8 +18,17 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
       id: note.id,
       content: lines.join("\n"),
     });
-  }
-  const debouncedSave = useDebouncedCallback(save, 1000);
+  }, [note.id, store]);
+
+  // save on focusout
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    el.addEventListener("focusout", save);
+    return () => {
+      el.removeEventListener("focusout", save);
+    };
+  }, [save]);
 
   return (
     <div className="rounded overflow-hidden shadow-md bg-white">
@@ -28,14 +37,11 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
         className="p-4"
         contentEditable
         suppressContentEditableWarning
-        onBlur={save}
         // delete on backspace if empty
         onKeyDown={(e) => {
           if (e.key === "Backspace" && e.currentTarget.textContent === "") {
             e.preventDefault();
             store.deleteNote(note.id);
-          } else {
-            debouncedSave();
           }
         }}
         dangerouslySetInnerHTML={{

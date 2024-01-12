@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Notes from "./pages/Notes";
 import { useStore, StoreContext } from "./lib/store";
 import Sidebar from "./components/Sidebar";
-import { ModalsProvider } from "./lib/modalContext";
+import { ModalsProvider, useModalsContext } from "./lib/modalContext";
 import { CreateNoteModal } from "./components/CreateNoteModal";
 import { ErrorBoundary } from "react-error-boundary";
 import Lists from "./pages/Lists";
@@ -10,6 +10,7 @@ import List from "./pages/List";
 import Search from "./pages/Search";
 import Note from "./pages/Note";
 import { CommandBar } from "./components/CommandBar";
+import { useHotkey } from "./lib/utils";
 
 const App = () => {
   const { store, isLoading } = useStore();
@@ -40,6 +41,12 @@ const App = () => {
 };
 
 function Layout() {
+  const modals = useModalsContext();
+  useHotkey(
+    (e) => e.metaKey && e.key === "k",
+    () => modals.commandbar.open()
+  );
+
   return (
     <div>
       <div className="fixed top-0 left-0 h-screen">
@@ -48,8 +55,7 @@ function Layout() {
       <main>
         <Outlet />
         <CreateNoteModal />
-        <CommandBar />
-        {/* <CreateListModal />  */}
+        {modals.commandbar.isOpen && <CommandBar />}
       </main>
     </div>
   );

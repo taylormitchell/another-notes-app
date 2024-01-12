@@ -32,6 +32,13 @@ export function sortByPosition<T extends { position: string; created_at: string 
   return 0;
 }
 
+export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): number {
+  if (a.updated_at && b.updated_at) {
+    return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+  }
+  return 0;
+}
+
 export function useHotkey(key: string | ((e: KeyboardEvent) => boolean), callback: () => void) {
   useEffect(() => {
     function handleHotkey(e: KeyboardEvent) {
