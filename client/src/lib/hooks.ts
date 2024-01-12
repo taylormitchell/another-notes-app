@@ -100,3 +100,11 @@ export function useListChildren(store: Store, listId: string) {
     () => store.getListChildren(listId)
   );
 }
+
+export function useNoteParentIds(store: Store, noteId: string) {
+  return useSubscribeToEvent(
+    store,
+    (event) => event.type === "listentry" && event.child_note_id === noteId,
+    () => store.getNoteParentListIds(noteId)
+  );
+}
