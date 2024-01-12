@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStoreContext } from "../lib/store";
 import { Note } from "../types";
-import { ArrowDown, ArrowUp, List, Maximize2 } from "react-feather";
+import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
-import { useLists, useNoteParentIds } from "../lib/hooks";
 import { useHotkey } from "../lib/utils";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
@@ -115,42 +114,42 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
  * - There's an input at the end to search for a list to add the note to
  * - When you click on a list in the dropdown, it adds the note to the list
  */
-function ListSelection({ note }: { note: Note }) {
-  const store = useStoreContext();
-  const lists = useLists(store);
-  const listIds = useNoteParentIds(store, note.id);
+// function ListSelection({ note }: { note: Note }) {
+//   const store = useStoreContext();
+//   const lists = useLists(store);
+//   const listIds = useNoteParentIds(store, note.id);
 
-  return (
-    <div className="flex items-center gap-2">
-      {listIds.map((listId) => {
-        const list = lists.find((list) => list.id === listId);
-        if (!list) return null;
-        return (
-          <div key={list.id} className="flex items-center gap-2">
-            <Link to={`/lists/${list.id}`}>
-              <div className="flex items-center gap-2">
-                <List />
-                {list.name}
-              </div>
-            </Link>
-            <button
-              className="w-8"
-              onClick={() => {
-                store.removeNoteFromList({ noteId: note.id, listId });
-              }}
-            >
-              x
-            </button>
-          </div>
-        );
-      })}
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          placeholder="Add to list..."
-          className="border border-gray-300 rounded-md p-2 focus:outline-none focus:border-blue-500"
-        />
-      </div>
-    </div>
-  );
-}
+//   return (
+//     <div className="flex items-center gap-2">
+//       {listIds.map((listId) => {
+//         const list = lists.find((list) => list.id === listId);
+//         if (!list) return null;
+//         return (
+//           <div key={list.id} className="flex items-center gap-2">
+//             <Link to={`/lists/${list.id}`}>
+//               <div className="flex items-center gap-2">
+//                 <List />
+//                 {list.name}
+//               </div>
+//             </Link>
+//             <button
+//               className="w-8"
+//               onClick={() => {
+//                 store.removeNoteFromList({ noteId: note.id, listId });
+//               }}
+//             >
+//               x
+//             </button>
+//           </div>
+//         );
+//       })}
+//       <div className="flex items-center gap-2">
+//         <input
+//           type="text"
+//           placeholder="Add to list..."
+//           className="border border-gray-300 rounded-md p-2 focus:outline-none focus:border-blue-500"
+//         />
+//       </div>
+//     </div>
+//   );
+// }
