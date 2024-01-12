@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useNotes } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 import { MiniSearchBar } from "../components/MiniSearchBar";
+import { Sidebar } from "../components/Sidebar";
+import { Header } from "../components/Header";
 
 export default function Notes() {
   const store = useStoreContext();
@@ -11,9 +13,10 @@ export default function Notes() {
   const [search, setSearch] = useState("");
   return (
     <div>
-      <header className="flex justify-end p-4 items-center">
+      <Header>
+        <Sidebar />
         <MiniSearchBar search={search} setSearch={setSearch} />
-      </header>
+      </Header>
       <main className="max-w-2xl mx-auto flex flex-col items-center">
         <ul className="w-full space-y-4 p-4">
           {notes

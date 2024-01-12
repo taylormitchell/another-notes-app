@@ -6,6 +6,8 @@ import { CreateButton } from "../components/CreateButton";
 import { useModalsContext } from "../lib/modalContext";
 import { useState } from "react";
 import { MiniSearchBar } from "../components/MiniSearchBar";
+import { Sidebar } from "../components/Sidebar";
+import { Header } from "../components/Header";
 
 export default function Lists() {
   const store = useStoreContext();
@@ -14,9 +16,10 @@ export default function Lists() {
   const [search, setSearch] = useState("");
   return (
     <div>
-      <header className="flex justify-end p-4 items-center">
+      <Header>
+        <Sidebar />
         <MiniSearchBar search={search} setSearch={setSearch} />
-      </header>
+      </Header>
       <div>
         <ul>
           {lists

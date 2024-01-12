@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Sidebar as SidebarIcon } from "react-feather";
 import useEventListener from "../lib/useEventListener";
 
-const Sidebar = () => {
+export const Sidebar = () => {
   const { isOpen, toggle, close } = useModalsContext().sidebar;
   const commandbar = useModalsContext().commandbar;
   const navigate = useNavigate();
@@ -62,5 +62,3 @@ const Sidebar = () => {
     </>
   );
 };
-
-export default Sidebar;

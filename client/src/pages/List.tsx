@@ -6,6 +6,8 @@ import { NoteCard } from "../components/NoteCard";
 import { CreateButton } from "../components/CreateButton";
 import { MiniSearchBar } from "../components/MiniSearchBar";
 import { useState } from "react";
+import { Sidebar } from "../components/Sidebar";
+import { Header } from "../components/Header";
 
 export default function List() {
   const listId = useParams().id ?? "";
@@ -41,9 +43,10 @@ export default function List() {
   return (
     // center everything
     <div>
-      <header className="flex justify-end p-4 items-center">
+      <Header>
+        <Sidebar />
         <MiniSearchBar search={search} setSearch={setSearch} />
-      </header>
+      </Header>
       <div
         className="flex flex-col items-center"
         onKeyDown={(e) => {

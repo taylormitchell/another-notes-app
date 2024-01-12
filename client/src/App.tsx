@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Notes from "./pages/Notes";
 import { useStore, StoreContext } from "./lib/store";
-import Sidebar from "./components/Sidebar";
 import { ModalsProvider, useModalsContext } from "./lib/modalContext";
 import { CreateNoteModal } from "./components/CreateNoteModal";
 import { ErrorBoundary } from "react-error-boundary";
@@ -49,9 +48,6 @@ function Layout() {
 
   return (
     <div>
-      <div className="fixed top-0 left-0 h-screen">
-        <Sidebar />
-      </div>
       <main>
         <Outlet />
         <CreateNoteModal />
