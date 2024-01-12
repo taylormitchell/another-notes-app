@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { sortByUpdatedAt, useHotkey } from "../lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useModalsContext } from "../lib/modalContext";
@@ -67,11 +67,11 @@ export const CommandBar: React.FC = () => {
     }));
   const filteredOptions: Option[] = [...commandOptions, ...listOptions, ...noteOptions];
 
-  const close = () => {
+  const close = useCallback(() => {
     modal.close();
     setSelectedIndex(0);
     setSearch("");
-  };
+  }, [modal, setSelectedIndex, setSearch]);
 
   const selectCommand = () => {
     filteredOptions[selectedIndex].handler();
@@ -82,18 +82,12 @@ export const CommandBar: React.FC = () => {
   useHotkey("ArrowDown", () => setSelectedIndex((prev) => (prev + 1) % filteredOptions.length));
   useHotkey("ArrowUp", () => setSelectedIndex((prev) => (prev - 1) % filteredOptions.length));
   useHotkey("Enter", () => selectCommand());
-  // on focusout, close the modal
-  //   document.addEventListener("focusout", (e) => {
-  //     if (!e.relatedTarget) {
-  //       close();
-  //     }
-  //   });
+
   return (
     <>
       <div className="fixed inset-0 z-10" aria-hidden="true" onClick={close}>
         <div
-          className="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-white shadow-lg p-4 rounded-lg z-10"
-          style={{ width: "600px" }}
+          className="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-white shadow-lg p-4 rounded-lg w-11/12 lg:w-1/3"
           onClick={(e) => e.stopPropagation()}
         >
           <input

@@ -8,8 +8,8 @@ function getEnvVariable(key: string): string {
 
 export const env = {
   isPersistenceDisabled: getEnvVariable("VITE_IS_PERSISTENCE_DISABLED") === "true",
-  apiUrl:
-    import.meta.env.MODE === "development"
-      ? getEnvVariable("VITE_LOCAL_SERVER_URL") + "/api"
-      : "/api",
+  apiUrl: "/api",
+  // import.meta.env.MODE === "development"
+  //   ? getEnvVariable("VITE_LOCAL_SERVER_URL") + "/api"
+  //   : "/api",
 };
