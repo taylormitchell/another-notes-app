@@ -8,10 +8,11 @@ import Lists from "./pages/Lists";
 import List from "./pages/List";
 import Search from "./pages/Search";
 import Note from "./pages/Note";
+import Home from "./pages/Home";
 import { CommandBar } from "./components/CommandBar";
 import { useHotkey } from "./lib/utils";
 import { SearchProvider, useSearchContext } from "./lib/SearchContext";
-import { Home } from "react-feather";
+import { Command } from "react-feather";
 import { MiniSearchBar } from "./components/MiniSearchBar";
 import { Sidebar } from "./components/Sidebar";
 
@@ -57,7 +58,12 @@ function Layout() {
     <div>
       <header className="flex justify-between p-4 items-center">
         <Sidebar />
-        <MiniSearchBar search={search} setSearch={setSearch} />
+        <div className="flex items-center gap-4">
+          <MiniSearchBar search={search} setSearch={setSearch} />
+          <button onClick={modals.commandbar.open}>
+            <Command />
+          </button>
+        </div>
       </header>
       <main>
         <Outlet />

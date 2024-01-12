@@ -27,7 +27,7 @@ export function MiniSearchBar({
     <div className="flex items-center gap-2">
       <button
         onClick={() => {
-          setShowInput(true);
+          setShowInput((v) => !v);
         }}
       >
         <Search />
