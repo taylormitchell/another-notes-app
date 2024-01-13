@@ -70,7 +70,6 @@ function Layout() {
   useHotkey(
     (e) => e.shiftKey && e.key.toLocaleLowerCase() === "c",
     () => {
-      console.log("shift + c");
       if (inputFocused()) return false;
       const note = store.addNote();
       navigate(`/notes/${note.id}`);

@@ -1,4 +1,13 @@
-import { Note, NoteWithPosition, List, ListEntry, PersistedNote, PersistedList, ListWithPosition, ListWithChildren } from "../types";
+import {
+  Note,
+  NoteWithPosition,
+  List,
+  ListEntry,
+  PersistedNote,
+  PersistedList,
+  ListWithPosition,
+  ListWithChildren,
+} from "../types";
 import { Database, BindParams } from "sql.js";
 import { generatePositionBetween, uuid } from "./utils";
 import { createContext, useContext, useState, useEffect } from "react";
@@ -271,6 +280,37 @@ export class Store {
     );
   }
 
+  addNoteToList({
+    noteId,
+    listId,
+    position,
+  }: {
+    noteId: string;
+    listId: string;
+    position?: string;
+  }) {
+    const now = new Date().toISOString();
+    const entry = {
+      id: uuid(),
+      parent_list_id: listId,
+      child_note_id: noteId,
+      position: position ?? this.getTopPosition(listId),
+      created_at: now,
+      updated_at: now,
+    };
+    this.exec(
+      "INSERT INTO ListEntry (id, parent_list_id, child_note_id, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        entry.id,
+        entry.parent_list_id,
+        entry.child_note_id,
+        entry.position,
+        entry.created_at,
+        entry.updated_at,
+      ]
+    );
+  }
+
   removeNoteFromList({ noteId, listId }: { noteId: string; listId: string }) {
     this.exec("DELETE FROM ListEntry WHERE child_note_id = ? AND parent_list_id = ?", [
       noteId,
@@ -361,7 +401,7 @@ export class Store {
     return [...notes, ...lists];
   }
 
-  getListsWithChildren( listIds?: string[]): ListWithChildren[] {
+  getListsWithChildren(listIds?: string[]): ListWithChildren[] {
     const lists = this.getLists(listIds);
     const result = this.exec<PersistedNote & { parent_list_id: string; position: string }>(
       `SELECT ListEntry.parent_list_id, ListEntry.position, Note.id, Note.content, Note.created_at, Note.updated_at
@@ -375,7 +415,15 @@ export class Store {
     const notesByListId = result.reduce(
       (acc, { parent_list_id, id, content, created_at, updated_at, position, upvotes }) => {
         if (!acc[parent_list_id]) acc[parent_list_id] = [];
-        acc[parent_list_id].push({ id, type: "note", content, created_at, updated_at, position, upvotes });
+        acc[parent_list_id].push({
+          id,
+          type: "note",
+          content,
+          created_at,
+          updated_at,
+          position,
+          upvotes,
+        });
         return acc;
       },
       {} as Record<string, (Note & { position: string })[]>

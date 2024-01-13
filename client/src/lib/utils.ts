@@ -78,3 +78,7 @@ export function inputFocused() {
   if (el.contentEditable === "true") return true;
   return false;
 }
+
+export function noModifiers(e: KeyboardEvent) {
+  return !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+}

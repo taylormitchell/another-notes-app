@@ -3,9 +3,11 @@ import { useModalsContext } from "../lib/modalContext";
 import { useNavigate } from "react-router-dom";
 import { Sidebar as SidebarIcon } from "react-feather";
 import useEventListener from "../lib/useEventListener";
-import { inputFocused, useHotkey } from "../lib/utils";
+import { inputFocused, noModifiers, useHotkey } from "../lib/utils";
+import { useStoreContext } from "../lib/store";
 
 export const Sidebar = () => {
+  const store = useStoreContext();
   const { isOpen, toggle, close } = useModalsContext().sidebar;
   const modals = useModalsContext();
   const navigate = useNavigate();
@@ -18,10 +20,13 @@ export const Sidebar = () => {
     }
   });
 
-  useHotkey("[", () => {
-    if (inputFocused()) return;
-    toggle();
-  });
+  useHotkey(
+    (e) => e.key === "[" && noModifiers(e),
+    () => {
+      if (inputFocused()) return;
+      toggle();
+    }
+  );
 
   return (
     <>
@@ -51,6 +56,13 @@ export const Sidebar = () => {
             { name: "Search", handler: () => navigate("/search") },
             { name: "Command Bar", handler: () => modals.commandbar.open() },
             { name: "Create Modal", handler: () => modals.createNote.open() },
+            {
+              name: "Create Note",
+              handler: () => {
+                const note = store.addNote();
+                navigate(`/notes/${note.id}`);
+              },
+            },
           ].map(({ name, handler }) => (
             <button
               key={name}
