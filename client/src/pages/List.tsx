@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useList, useListChildren } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
-import { sortByPosition, generatePositionBetween } from "../lib/utils";
+import { sortByPosition, generatePositionBetween, filterByText } from "../lib/utils";
 import { NoteCard } from "../components/NoteCard";
 import { CreateButton } from "../components/CreateButton";
 import { useSearchContext } from "../lib/SearchContext";
@@ -10,18 +10,10 @@ import { ItemsColumn } from "../components/ItemsColumn";
 export default function List() {
   const listId = useParams().id ?? "";
   const store = useStoreContext();
-  const { search } = useSearchContext();
+  const search = useSearchContext().search.toLocaleLowerCase();
   const list = useList(store, listId);
-  const sortedChildren = useListChildren(store, listId)
-    .filter((child) => {
-      if (!search) return true;
-      if (child.type === "list") {
-        return child.name.includes(search);
-      } else {
-        return child.content.includes(search);
-      }
-    })
-    .sort(sortByPosition);
+  const children = useListChildren(store, listId);
+  const sortedChildren = filterByText(children, search).sort(sortByPosition);
 
   if (!list) {
     return <div>List not found</div>;

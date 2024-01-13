@@ -4,7 +4,7 @@ import { NoteCard } from "../components/NoteCard";
 import { useSearchContext } from "../lib/SearchContext";
 import { useNotes } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
-import { useHotkey } from "../lib/utils";
+import { filterByText, useHotkey } from "../lib/utils";
 
 export default function Notes() {
   const store = useStoreContext();
@@ -21,8 +21,7 @@ export default function Notes() {
   return (
     <div>
       <ItemsColumn>
-        {notes
-          .filter((note) => (search ? note.content.includes(search) : true))
+        {filterByText(notes, search)
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .map((note) => (
             <li key={note.id}>

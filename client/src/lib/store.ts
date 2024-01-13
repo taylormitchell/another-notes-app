@@ -1,4 +1,4 @@
-import { Note, NoteWithPosition, List, ListEntry } from "../types";
+import { Note, NoteWithPosition, List, ListEntry, PersistedNote, PersistedList, ListWithPosition, ListWithChildren } from "../types";
 import { Database, BindParams } from "sql.js";
 import { generatePositionBetween, uuid } from "./utils";
 import { createContext, useContext, useState, useEffect } from "react";
@@ -97,7 +97,10 @@ export class Store {
     try {
       this.sqlToApi(sql, params);
       const result = this.db.exec(sql, params);
-      if (!result || !result[0]) return [];
+      if (!result || !result[0]) {
+        log("exec").info({ sql, params, count: 0 });
+        return [];
+      }
       const keys = result[0].columns;
       const values = result[0].values.map((values) => {
         const obj = {} as Record<string, unknown>;
@@ -143,6 +146,7 @@ export class Store {
   }
 
   updateNote({ id, content }: { id: string; content: string }) {
+    console.log("updateNote", { id, content });
     this.exec("UPDATE Note SET content = ?, updated_at = ? WHERE id = ?", [
       content,
       new Date().toISOString(),
@@ -154,8 +158,8 @@ export class Store {
   }
 
   getNote(id: string): Note | undefined {
-    const result = this.exec<Note>("SELECT * FROM Note WHERE id = ?", [id]);
-    return result[0];
+    const result = this.exec<PersistedNote>("SELECT * FROM Note WHERE id = ?", [id]);
+    return result[0] ? { ...result[0], type: "note" } : undefined;
   }
 
   deleteNote(id: string) {
@@ -163,7 +167,7 @@ export class Store {
   }
 
   getNotes(): Note[] {
-    return this.exec<Note>("SELECT * FROM Note");
+    return this.exec<PersistedNote>("SELECT * FROM Note").map((n) => ({ ...n, type: "note" }));
   }
 
   getListEntry(id: string): ListEntry | undefined {
@@ -184,11 +188,11 @@ export class Store {
   }
 
   getList(id: string): List | undefined {
-    const lists = this.exec<List>("SELECT * FROM List WHERE id = ?", [id]);
-    return lists[0];
+    const lists = this.exec<PersistedList>("SELECT * FROM List WHERE id = ?", [id]);
+    return lists[0] ? { ...lists[0], type: "list" } : undefined;
   }
 
-  updateList({ id, name }: { id: string; name: string }) {
+  updateList({ id, name }: { id: string; name: string }): List | undefined {
     this.exec("UPDATE List SET name = ?, updated_at = ? WHERE id = ?", [
       name,
       new Date().toISOString(),
@@ -206,12 +210,13 @@ export class Store {
   }
 
   getLists(listIds?: string[]): List[] {
-    return listIds
-      ? this.exec<List>(
+    const lists = listIds
+      ? this.exec<PersistedList>(
           `SELECT * FROM List WHERE id IN (${listIds.map(() => "?").join(", ")})`,
           listIds
         )
-      : this.exec<List>("SELECT * FROM List");
+      : this.exec<PersistedList>("SELECT * FROM List");
+    return lists.map((l) => ({ ...l, type: "list" }));
   }
 
   getBottomPosition(listId: string) {
@@ -325,17 +330,17 @@ export class Store {
   }
 
   getNotesInList(listId: string): NoteWithPosition[] {
-    return this.exec<NoteWithPosition>(
+    return this.exec<PersistedNote & { position: string }>(
       `SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position
       FROM listentry
       LEFT JOIN note ON listentry.child_note_id = note.id
       WHERE listentry.parent_list_id = ?`,
       [listId]
-    );
+    ).map((n) => ({ ...n, type: "note" }));
   }
 
-  getListChildren(listId: string) {
-    const notes = this.exec<Note & { type: "note"; position: string }>(
+  getListChildren(listId: string): (ListWithPosition | NoteWithPosition)[] {
+    const notes = this.exec<NoteWithPosition>(
       `
       SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position, 'note' as type
       FROM listentry
@@ -344,7 +349,7 @@ export class Store {
     `,
       [listId]
     );
-    const lists = this.exec<List & { type: "list"; position: string }>(
+    const lists = this.exec<ListWithPosition>(
       `
       SELECT list.id, list.name, list.created_at, list.updated_at, listentry.position, 'list' as type
       FROM listentry
@@ -356,11 +361,9 @@ export class Store {
     return [...notes, ...lists];
   }
 
-  getListsWithChildren(
-    listIds?: string[]
-  ): (List & { children: (Note & { position: string })[] })[] {
+  getListsWithChildren( listIds?: string[]): ListWithChildren[] {
     const lists = this.getLists(listIds);
-    const result = this.exec<Note & { parent_list_id: string; position: string }>(
+    const result = this.exec<PersistedNote & { parent_list_id: string; position: string }>(
       `SELECT ListEntry.parent_list_id, ListEntry.position, Note.id, Note.content, Note.created_at, Note.updated_at
       FROM ListEntry
       LEFT JOIN Note ON ListEntry.child_note_id = Note.id
@@ -372,7 +375,7 @@ export class Store {
     const notesByListId = result.reduce(
       (acc, { parent_list_id, id, content, created_at, updated_at, position, upvotes }) => {
         if (!acc[parent_list_id]) acc[parent_list_id] = [];
-        acc[parent_list_id].push({ id, content, created_at, updated_at, position, upvotes });
+        acc[parent_list_id].push({ id, type: "note", content, created_at, updated_at, position, upvotes });
         return acc;
       },
       {} as Record<string, (Note & { position: string })[]>

@@ -1,17 +1,28 @@
-export type Note = {
+
+/**
+ * Note structure as it is stored in the database.
+ */
+export type PersistedNote = {
   id: string;
   content: string;
   created_at: string;
   updated_at: string;
   upvotes: number;
-};
+}
 
-export type List = {
+/**
+ * List structure as it is stored in the database.
+ */
+export type PersistedList = {
   id: string;
   name: string;
   created_at: string;
   updated_at: string;
 };
+
+export type Note = PersistedNote & { type: "note"; }
+
+export type List = PersistedList & { type: "list"; }
 
 export type ListEntry = {
   id: string;
@@ -24,3 +35,7 @@ export type ListEntry = {
 };
 
 export type NoteWithPosition = Note & { position: string };
+
+export type ListWithPosition = List & { position: string };
+
+export type ListWithChildren = List & { children: (ListWithPosition | NoteWithPosition)[] };

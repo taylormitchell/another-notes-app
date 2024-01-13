@@ -1,6 +1,7 @@
 import { v4 } from "uuid";
 import { generateKeyBetween } from "fractional-indexing";
 import { useEffect } from "react";
+import { Note, List, Item } from "../types";
 
 export const uuid = v4;
 
@@ -37,6 +38,18 @@ export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): n
     return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
   }
   return 0;
+}
+
+export function filterByText<T extends Note | List>(arr: T[], text: string): T[] {
+  if (!text) return arr;
+  const textLower = text.toLowerCase();
+  return arr.filter(entry => {
+    if (entry.type === "note") {
+      return entry.content.toLowerCase().includes(textLower);
+    } else {
+      return entry.name.toLowerCase().includes(textLower);
+    }
+  });
 }
 
 export function useHotkey(
