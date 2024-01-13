@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Store, Event } from "./store";
 import { Note } from "../types";
 
@@ -7,15 +7,19 @@ export function useSubscribeToEvent<T>(
   shouldUpdate: (event: Event) => boolean,
   get: () => T
 ) {
-  const [, setUpdated] = useState(new Date().toISOString());
+  const [value, setValue] = useState(() => get());
+  const getRef = useRef(get);
+  getRef.current = get;
+  const shouldUpdateRef = useRef(shouldUpdate);
+  shouldUpdateRef.current = shouldUpdate;
   useEffect(() => {
     return store.subscribeToEvent((event) => {
-      if (shouldUpdate(event)) {
-        setUpdated(new Date().toISOString());
+      if (shouldUpdateRef.current(event)) {
+        setValue(getRef.current());
       }
     });
-  }, [store, shouldUpdate]);
-  return get();
+  }, [store, setValue]);
+  return value;
 }
 
 export function useNotes(store: Store) {

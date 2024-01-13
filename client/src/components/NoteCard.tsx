@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { useHotkey } from "../lib/utils";
 import { useDisplayContext } from "../lib/DisplayContext";
 import ListSelection from "./ListSelection";
-import { useSubscribeToEvent } from "../lib/hooks";
+import { useNoteParentIds } from "../lib/hooks";
 
 export function NoteCard({
   note,
@@ -22,17 +22,9 @@ export function NoteCard({
   const contentRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
-  const showDetails = view === "card" || hover || focused;
   const [showLists, setShowLists] = useState(false);
-
-  const countLists = useSubscribeToEvent(
-    store,
-    (e) => e.type === "listentry" && e.child_note_id === note.id,
-    () => {
-      const res = store.getNoteParentListIds(note.id);
-      return res.length;
-    }
-  );
+  const countLists = useNoteParentIds(store, note.id).length;
+  const showDetails = view === "card" || hover || focused;
 
   const save = useCallback(() => {
     if (!contentRef.current) return;

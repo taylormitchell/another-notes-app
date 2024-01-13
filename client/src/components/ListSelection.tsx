@@ -32,15 +32,15 @@ const ListSelection = ({ noteId, close }: { noteId: string; close: () => void })
   }, [close]);
 
   return (
-    <div ref={ref} className="w-64">
+    <div ref={ref} className="w-64 bg-white rounded border border-gray-200 shadow-md">
       <input
         type="text"
         placeholder="Add label..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded"
+        className="w-full p-2"
       />
-      <ul className="mt-2 max-h-60 overflow-auto border border-gray-300 rounded">
+      <ul className="max-h-60 overflow-auto">
         {filterByText(lists, filter)
           .filter((list) => list.name !== "")
           .map((list) => (
