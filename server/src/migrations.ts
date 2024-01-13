@@ -72,4 +72,26 @@ export const migrations: Migration[] = [
       PRAGMA user_version = 2;
       `,
   },
+  // add unique constraint to listentry table
+  {
+    version: 3,
+    sql: `
+      DELETE FROM ListEntry WHERE id NOT IN (
+        SELECT MIN(id) FROM ListEntry GROUP BY parent_list_id, child_note_id, child_list_id
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_listentry_parent__child ON ListEntry (parent_list_id, child_note_id, child_list_id);
+      PRAGMA user_version = 3;
+      `,
+  },
+  {
+    version: 4,
+    sql: `
+      DELETE FROM ListEntry WHERE id NOT IN (
+        SELECT MIN(id) FROM ListEntry GROUP BY parent_list_id, child_note_id, child_list_id
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_listentry_parent_child_note_unique ON ListEntry (parent_list_id, child_note_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_listentry_parent_child_list_unique ON ListEntry (parent_list_id, child_list_id);
+      PRAGMA user_version = 4;
+    `,
+  },
 ];

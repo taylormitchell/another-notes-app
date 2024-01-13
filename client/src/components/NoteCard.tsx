@@ -5,6 +5,8 @@ import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
 import { useHotkey } from "../lib/utils";
 import { useDisplayContext } from "../lib/DisplayContext";
+import ListSelection from "./ListSelection";
+import { useSubscribeToEvent } from "../lib/hooks";
 
 export function NoteCard({
   note,
@@ -21,6 +23,16 @@ export function NoteCard({
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
   const showDetails = view === "card" || hover || focused;
+  const [showLists, setShowLists] = useState(false);
+
+  const countLists = useSubscribeToEvent(
+    store,
+    (e) => e.type === "listentry" && e.child_note_id === note.id,
+    () => {
+      const res = store.getNoteParentListIds(note.id);
+      return res.length;
+    }
+  );
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -59,7 +71,7 @@ export function NoteCard({
 
   return (
     <div
-      className={`rounded overflow-hidden bg-white ${view === "card" ? "shadow-md" : ""}`}
+      className={`rounded bg-white ${view === "card" ? "shadow-md" : ""}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -115,6 +127,16 @@ export function NoteCard({
                 <Maximize2 size={16} />
               </Link>
             </div>
+            <div></div>
+            {showLists ? (
+              <div className="relative">
+                <div className="absolute top-0 left-0 z-13">
+                  <ListSelection noteId={note.id} close={() => setShowLists(false)} />
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowLists(true)}>{countLists} Lists</button>
+            )}
             {/* <div>
             <ListSelection note={note} />
           </div> */}

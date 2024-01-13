@@ -20,20 +20,19 @@ function getVersion(db: sqlite3.Database): Promise<number> {
       if (err) {
         reject(err);
       } else {
-        console.log({ err, row });
         resolve(row ? row["user_version"] : 0);
       }
     });
   });
 }
 
-async function exec(db: sqlite3.Database, sql: string, params: any = {}): Promise<RunResult> {
+async function exec(db: sqlite3.Database, sql: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    db.run(sql, params, (result: RunResult, err: Error | null) => {
+    db.exec(sql, (err: Error | null) => {
       if (err) {
         reject(err);
       } else {
-        resolve(result);
+        resolve();
       }
     });
   });
@@ -51,13 +50,16 @@ export const sqlitePromise = (async () => {
   const db = new sqlite3.Database(sqliteFile);
   // Apply migrations
   const version = await getVersion(db);
-  console.log("sqlite version: ", version);
+  console.log("current sqlite version: ", version);
+  console.log("latest migration version: ", migrations[migrations.length - 1].version);
   if (version < migrations.length - 1) {
     for (let i = version + 1; i < migrations.length; i++) {
       const migration = migrations[i];
       console.log("applying migration: ", migration);
       await exec(db, migration.sql);
     }
+    const newVersion = await getVersion(db);
+    console.log("new sqlite version: ", newVersion);
     await uploadSqlite(fs.readFileSync(sqliteFile));
   } else {
     console.log("no migrations to apply");
