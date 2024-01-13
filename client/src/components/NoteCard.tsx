@@ -22,10 +22,8 @@ export function NoteCard({
   const contentRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [showLists, setShowLists] = useState(false);
-  const countLists = useNoteParentIds(store, note.id).length;
   const showDetails = view === "card" || hover || focused;
-  const listIdsWithNote = useNoteParentIds(store, note.id);
+  const [showLists, setShowLists] = useState(false);
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -122,27 +120,10 @@ export function NoteCard({
             </div>
             <div></div>
             {showLists ? (
-              <div className="relative">
-                <div className="absolute top-0 left-0 z-13">
-                  <ListSelection
-                    selectedIds={listIdsWithNote}
-                    toggleSelection={(id: string) => {
-                      if (listIdsWithNote.includes(id)) {
-                        store.removeNoteFromList({ noteId: note.id, listId: id });
-                      } else {
-                        store.addNoteToList({ noteId: note.id, listId: id });
-                      }
-                    }}
-                    close={() => setShowLists(false)}
-                  />
-                </div>
-              </div>
+              <CardListSelection note={note} close={() => setShowLists(false)} />
             ) : (
-              <button onClick={() => setShowLists(true)}>{countLists} Lists</button>
+              <button onClick={() => setShowLists(true)}>Lists</button>
             )}
-            {/* <div>
-            <ListSelection note={note} />
-          </div> */}
           </>
         )}
       </div>
@@ -150,49 +131,26 @@ export function NoteCard({
   );
 }
 
-/**
- * List selection
- * - Shows all list the note belongs to in a row
- * - Each list has a little x button to remove the note from the list
- * - There's an input at the end to search for a list to add the note to
- * - When you click on a list in the dropdown, it adds the note to the list
- */
-// function ListSelection({ note }: { note: Note }) {
-//   const store = useStoreContext();
-//   const lists = useLists(store);
-//   const listIds = useNoteParentIds(store, note.id);
-
-//   return (
-//     <div className="flex items-center gap-2">
-//       {listIds.map((listId) => {
-//         const list = lists.find((list) => list.id === listId);
-//         if (!list) return null;
-//         return (
-//           <div key={list.id} className="flex items-center gap-2">
-//             <Link to={`/lists/${list.id}`}>
-//               <div className="flex items-center gap-2">
-//                 <List />
-//                 {list.name}
-//               </div>
-//             </Link>
-//             <button
-//               className="w-8"
-//               onClick={() => {
-//                 store.removeNoteFromList({ noteId: note.id, listId });
-//               }}
-//             >
-//               x
-//             </button>
-//           </div>
-//         );
-//       })}
-//       <div className="flex items-center gap-2">
-//         <input
-//           type="text"
-//           placeholder="Add to list..."
-//           className="border border-gray-300 rounded-md p-2 focus:outline-none focus:border-blue-500"
-//         />
-//       </div>
-//     </div>
-//   );
-// }
+function CardListSelection({ note, close }: { note: Note; close: () => void }) {
+  const store = useStoreContext();
+  const listIdsWithNote = useNoteParentIds(store, note.id);
+  return (
+    <>
+      <div className="relative">
+        <div className="absolute top-0 left-0 z-13">
+          <ListSelection
+            selectedIds={listIdsWithNote}
+            toggleSelection={(id: string) => {
+              if (listIdsWithNote.includes(id)) {
+                store.removeNoteFromList({ noteId: note.id, listId: id });
+              } else {
+                store.addNoteToList({ noteId: note.id, listId: id });
+              }
+            }}
+            close={close}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
