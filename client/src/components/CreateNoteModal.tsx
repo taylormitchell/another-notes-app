@@ -1,18 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLists } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 import { useModalsContext } from "../lib/modalContext";
 import useEventListener from "../lib/useEventListener";
 import { useHotkey } from "../lib/utils";
+import ListSelection from "./ListSelection";
 
 export const CreateNoteModal = () => {
   const { close } = useModalsContext().createNote;
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const store = useStoreContext();
-  const lists = useLists(store);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [listSelectionOpen, setListSelectionOpen] = useState(false);
-  const listSelectionRef = useRef<HTMLSelectElement>(null);
 
   const closeModal = useCallback(() => {
     close();
@@ -20,12 +19,9 @@ export const CreateNoteModal = () => {
   }, [close, setListSelectionOpen]);
 
   const create = useCallback(() => {
-    const listIds = listSelectionRef.current
-      ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
-      : [];
-    store.addNote({ content, listPositions: listIds.map((id) => ({ id })) });
+    store.addNote({ content, listPositions: selectedIds.map((id) => ({ id })) });
     closeModal();
-  }, [content, store, closeModal]);
+  }, [content, store, closeModal, selectedIds]);
 
   useEventListener(document, "mousedown", (event) => {
     if (!event.target) return;
@@ -63,15 +59,21 @@ export const CreateNoteModal = () => {
         />
         {/* multi-select dropdown of existing lists */}
         {listSelectionOpen ? (
-          <select className="border w-full" multiple ref={listSelectionRef}>
-            {lists
-              ?.filter((list) => !!list.name)
-              .map((list) => (
-                <option key={list.id} value={list.id}>
-                  {list.name}
-                </option>
-              ))}
-          </select>
+          <div className="relative">
+            <div className="absolute top-0 left-0 z-13">
+              <ListSelection
+                selectedIds={selectedIds}
+                toggleSelection={(id: string) => {
+                  if (selectedIds.includes(id)) {
+                    setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+                  } else {
+                    setSelectedIds([...selectedIds, id]);
+                  }
+                }}
+                close={() => setListSelectionOpen(false)}
+              />
+            </div>
+          </div>
         ) : (
           <button onClick={() => setListSelectionOpen(true)}>Add to list</button>
         )}

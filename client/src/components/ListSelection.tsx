@@ -1,22 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { filterByText } from "../lib/utils";
-import { useLists, useNoteParentIds } from "../lib/hooks";
+import { useLists } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 
-const ListSelection = ({ noteId, close }: { noteId: string; close: () => void }) => {
+const ListSelection = ({
+  selectedIds,
+  toggleSelection,
+  close,
+}: {
+  selectedIds: string[];
+  toggleSelection: (id: string) => void;
+  close: () => void;
+}) => {
   const store = useStoreContext();
   const lists = useLists(store);
-  const listIdsWithNote = useNoteParentIds(store, noteId);
-
   const [filter, setFilter] = useState("");
-
-  const toggleSelection = (id: string) => {
-    if (listIdsWithNote.includes(id)) {
-      store.removeNoteFromList({ noteId, listId: id });
-    } else {
-      store.addNoteToList({ noteId, listId: id });
-    }
-  };
 
   // If the user clicks outside of the dropdown, close it
   const ref = useRef<HTMLDivElement>(null);
@@ -47,13 +45,13 @@ const ListSelection = ({ noteId, close }: { noteId: string; close: () => void })
             <li
               key={list.id}
               className={`flex items-center p-2 cursor-pointer hover:bg-gray-100 ${
-                listIdsWithNote.includes(list.id) ? "bg-blue-200" : ""
+                selectedIds.includes(list.id) ? "bg-blue-200" : ""
               }`}
               onClick={() => toggleSelection(list.id)}
             >
               <input
                 type="checkbox"
-                checked={listIdsWithNote.includes(list.id)}
+                checked={selectedIds.includes(list.id)}
                 onChange={() => toggleSelection(list.id)}
                 className="mr-2"
               />

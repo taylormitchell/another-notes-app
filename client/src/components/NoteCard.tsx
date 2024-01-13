@@ -25,6 +25,7 @@ export function NoteCard({
   const [showLists, setShowLists] = useState(false);
   const countLists = useNoteParentIds(store, note.id).length;
   const showDetails = view === "card" || hover || focused;
+  const listIdsWithNote = useNoteParentIds(store, note.id);
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -123,7 +124,17 @@ export function NoteCard({
             {showLists ? (
               <div className="relative">
                 <div className="absolute top-0 left-0 z-13">
-                  <ListSelection noteId={note.id} close={() => setShowLists(false)} />
+                  <ListSelection
+                    selectedIds={listIdsWithNote}
+                    toggleSelection={(id: string) => {
+                      if (listIdsWithNote.includes(id)) {
+                        store.removeNoteFromList({ noteId: note.id, listId: id });
+                      } else {
+                        store.addNoteToList({ noteId: note.id, listId: id });
+                      }
+                    }}
+                    close={() => setShowLists(false)}
+                  />
                 </div>
               </div>
             ) : (
