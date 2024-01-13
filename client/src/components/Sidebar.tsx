@@ -3,10 +3,11 @@ import { useModalsContext } from "../lib/modalContext";
 import { useNavigate } from "react-router-dom";
 import { Sidebar as SidebarIcon } from "react-feather";
 import useEventListener from "../lib/useEventListener";
+import { inputFocused, useHotkey } from "../lib/utils";
 
 export const Sidebar = () => {
   const { isOpen, toggle, close } = useModalsContext().sidebar;
-  const commandbar = useModalsContext().commandbar;
+  const modals = useModalsContext();
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -15,6 +16,11 @@ export const Sidebar = () => {
     if (sidebarRef.current && !sidebarRef.current.contains(event.target as HTMLElement)) {
       close();
     }
+  });
+
+  useHotkey("[", () => {
+    if (inputFocused()) return;
+    toggle();
   });
 
   return (
@@ -43,8 +49,8 @@ export const Sidebar = () => {
             { name: "Notes", handler: () => navigate("/notes") },
             { name: "Lists", handler: () => navigate("/lists") },
             { name: "Search", handler: () => navigate("/search") },
-            { name: "Command Bar", handler: () => commandbar.open() },
-            // { name: "Create Modal", handler: openModal },
+            { name: "Command Bar", handler: () => modals.commandbar.open() },
+            { name: "Create Modal", handler: () => modals.createNote.open() },
           ].map(({ name, handler }) => (
             <button
               key={name}

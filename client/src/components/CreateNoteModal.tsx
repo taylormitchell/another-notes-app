@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLists } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 import { useModalsContext } from "../lib/modalContext";
 import useEventListener from "../lib/useEventListener";
+import { useHotkey } from "../lib/utils";
 
 export const CreateNoteModal = () => {
-  const { isOpen, close } = useModalsContext().createNote;
+  const { close } = useModalsContext().createNote;
   const [content, setContent] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const store = useStoreContext();
@@ -13,10 +14,18 @@ export const CreateNoteModal = () => {
   const [listSelectionOpen, setListSelectionOpen] = useState(false);
   const listSelectionRef = useRef<HTMLSelectElement>(null);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     close();
     setListSelectionOpen(false);
-  };
+  }, [close, setListSelectionOpen]);
+
+  const create = useCallback(() => {
+    const listIds = listSelectionRef.current
+      ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
+      : [];
+    store.addNote({ content, listPositions: listIds.map((id) => ({ id })) });
+    closeModal();
+  }, [content, store, closeModal]);
 
   useEventListener(document, "mousedown", (event) => {
     if (!event.target) return;
@@ -25,12 +34,26 @@ export const CreateNoteModal = () => {
     }
   });
 
-  if (!isOpen) return null;
+  useHotkey("Escape", () => {
+    closeModal();
+  });
+
+  useHotkey(
+    (e) => e.metaKey && e.key === "Enter",
+    () => {
+      create();
+    }
+  );
+
+  // Auto focus note content on open
+  const noteRef = useRef<HTMLDivElement>(null);
+  useEffect(() => noteRef.current?.focus(), []);
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-64 bg-white rounded-lg p-3" ref={modalRef}>
-        <p
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-20 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg p-3 w-11/12 lg:w-1/3" ref={modalRef}>
+        <div
+          ref={noteRef}
           className="p-4 w-full border h-32"
           contentEditable
           suppressContentEditableWarning
@@ -56,16 +79,7 @@ export const CreateNoteModal = () => {
           <button className="text-gray-500" onClick={closeModal}>
             Cancel
           </button>
-          <button
-            className="text-gray-500"
-            onClick={() => {
-              const listIds = listSelectionRef.current
-                ? Array.from(listSelectionRef.current.selectedOptions).map((option) => option.value)
-                : [];
-              store.addNote({ content, listPositions: listIds.map((id) => ({ id })) });
-              closeModal();
-            }}
-          >
+          <button className="text-gray-500" onClick={create}>
             Create
           </button>
         </div>

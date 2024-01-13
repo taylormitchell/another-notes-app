@@ -6,7 +6,15 @@ import { Link } from "react-router-dom";
 import { useHotkey } from "../lib/utils";
 import { useDisplayContext } from "../lib/DisplayContext";
 
-export function NoteCard({ note, position }: { note: Note; position?: string }) {
+export function NoteCard({
+  note,
+  position,
+  autofocus,
+}: {
+  note: Note;
+  position?: string;
+  autofocus?: boolean;
+}) {
   const store = useStoreContext();
   const { view } = useDisplayContext();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -41,6 +49,13 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
       contentRef.current?.blur();
     }
   });
+
+  // autofocus
+  useEffect(() => {
+    if (autofocus) {
+      contentRef.current?.focus();
+    }
+  }, [autofocus]);
 
   return (
     <div

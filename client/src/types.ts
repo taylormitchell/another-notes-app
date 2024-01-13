@@ -1,4 +1,3 @@
-
 /**
  * Note structure as it is stored in the database.
  */
@@ -8,7 +7,7 @@ export type PersistedNote = {
   created_at: string;
   updated_at: string;
   upvotes: number;
-}
+};
 
 /**
  * List structure as it is stored in the database.
@@ -20,9 +19,9 @@ export type PersistedList = {
   updated_at: string;
 };
 
-export type Note = PersistedNote & { type: "note"; }
+export type Note = PersistedNote & { type: "note" };
 
-export type List = PersistedList & { type: "list"; }
+export type List = PersistedList & { type: "list" };
 
 export type ListEntry = {
   id: string;

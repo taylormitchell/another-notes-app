@@ -12,4 +12,5 @@ export const env = {
   // import.meta.env.MODE === "development"
   //   ? getEnvVariable("VITE_LOCAL_SERVER_URL") + "/api"
   //   : "/api",
+  isTouchDevice: "ontouchstart" in window,
 };

@@ -71,3 +71,10 @@ export function useHotkey(
     };
   }, [key, callback]);
 }
+
+export function inputFocused() {
+  const el = document.activeElement as HTMLElement;
+  if (el.tagName === "INPUT") return true;
+  if (el.contentEditable === "true") return true;
+  return false;
+}

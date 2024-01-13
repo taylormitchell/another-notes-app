@@ -2,9 +2,10 @@ import { CreateButton } from "../components/CreateButton";
 import { ItemsColumn } from "../components/ItemsColumn";
 import { NoteCard } from "../components/NoteCard";
 import { useSearchContext } from "../lib/SearchContext";
+import { env } from "../lib/env";
 import { useNotes } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
-import { filterByText, useHotkey } from "../lib/utils";
+import { filterByText, inputFocused, useHotkey } from "../lib/utils";
 
 export default function Notes() {
   const store = useStoreContext();
@@ -12,9 +13,7 @@ export default function Notes() {
   const notes = useNotes(store);
 
   useHotkey("n", () => {
-    const el = document.activeElement as HTMLElement;
-    if (el.tagName === "INPUT") return false;
-    if (el.contentEditable === "true") return false;
+    if (inputFocused()) return false;
     store.addNote();
   });
 
@@ -29,11 +28,13 @@ export default function Notes() {
             </li>
           ))}
       </ItemsColumn>
-      <CreateButton
-        onClick={() => {
-          store.addNote();
-        }}
-      />
+      {env.isTouchDevice && (
+        <CreateButton
+          onClick={() => {
+            store.addNote();
+          }}
+        />
+      )}
     </div>
   );
 }

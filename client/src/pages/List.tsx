@@ -31,18 +31,7 @@ export default function List() {
   };
 
   return (
-    <div
-      className="flex flex-col items-center"
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          // get content of active element
-          const el = document.activeElement as HTMLElement;
-          const html = el.innerHTML;
-          console.log(html);
-          // console.log(text.at(-1) === "\n");
-        }
-      }}
-    >
+    <div>
       <h1
         className="text-2xl font-bold text-center"
         contentEditable
