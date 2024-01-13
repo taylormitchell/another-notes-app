@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { generateKeyBetween } from "fractional-indexing";
 import { useEffect } from "react";
-import { Note, List, Item } from "../types";
+import { Note, List } from "../types";
 
 export const uuid = v4;
 
@@ -43,7 +43,7 @@ export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): n
 export function filterByText<T extends Note | List>(arr: T[], text: string): T[] {
   if (!text) return arr;
   const textLower = text.toLowerCase();
-  return arr.filter(entry => {
+  return arr.filter((entry) => {
     if (entry.type === "note") {
       return entry.content.toLowerCase().includes(textLower);
     } else {

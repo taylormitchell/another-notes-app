@@ -4,13 +4,15 @@ import { Note } from "../types";
 import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
 import { useHotkey } from "../lib/utils";
+import { useDisplayContext } from "../lib/DisplayContext";
 
 export function NoteCard({ note, position }: { note: Note; position?: string }) {
   const store = useStoreContext();
+  const { view } = useDisplayContext();
   const contentRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
-  const showDetails = hover || focused;
+  const showDetails = view === "card" || hover || focused;
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -42,8 +44,7 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
 
   return (
     <div
-      // className="rounded overflow-hidden shadow-md bg-white"
-      className="rounded overflow-hidden bg-white"
+      className={`rounded overflow-hidden bg-white ${view === "card" ? "shadow-md" : ""}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -64,7 +65,7 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
         dangerouslySetInnerHTML={{
           __html: note.content
             .split("\n")
-            .map((line) => line === "" ? "<br />" : `<div>${line}</div>`)
+            .map((line) => (line === "" ? "<br />" : `<div>${line}</div>`))
             .join(""),
         }}
       />
