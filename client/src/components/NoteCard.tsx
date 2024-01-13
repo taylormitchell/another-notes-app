@@ -64,7 +64,7 @@ export function NoteCard({ note, position }: { note: Note; position?: string }) 
         dangerouslySetInnerHTML={{
           __html: note.content
             .split("\n")
-            .map((line) => `<div>${line}</div>`)
+            .map((line) => line === "" ? "<br />" : `<div>${line}</div>`)
             .join(""),
         }}
       />
