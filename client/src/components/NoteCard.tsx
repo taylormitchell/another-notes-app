@@ -100,6 +100,7 @@ export function NoteCard({
       {showDetails && (
         <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
           <>
+            <div>({position ?? ""})</div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => {
