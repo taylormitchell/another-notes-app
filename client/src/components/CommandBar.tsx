@@ -73,15 +73,15 @@ export const CommandBar: React.FC = () => {
     setSearch("");
   }, [modal, setSelectedIndex, setSearch]);
 
-  const selectCommand = () => {
-    filteredOptions[selectedIndex].handler();
+  const selectCommand = (i: number) => {
+    filteredOptions[i].handler();
     close();
   };
 
   useHotkey("Escape", close);
   useHotkey("ArrowDown", () => setSelectedIndex((prev) => (prev + 1) % filteredOptions.length));
   useHotkey("ArrowUp", () => setSelectedIndex((prev) => (prev - 1) % filteredOptions.length));
-  useHotkey("Enter", () => selectCommand());
+  useHotkey("Enter", () => selectCommand(selectedIndex));
 
   return (
     <>
@@ -110,7 +110,7 @@ export const CommandBar: React.FC = () => {
                     key={index}
                     className={`p-2 ${index === selectedIndex ? "bg-gray-200" : ""}`}
                     onClick={() => {
-                      selectCommand();
+                      selectCommand(index);
                     }}
                   >
                     {option.jsx}

@@ -14,14 +14,19 @@ import { CreateButton } from "../components/CreateButton";
 import { useSearchContext } from "../lib/SearchContext";
 import { ItemsColumn } from "../components/ItemsColumn";
 import { env } from "../lib/env";
+import { useEffect } from "react";
 
 export default function List() {
   const listId = useParams().id ?? "";
   const store = useStoreContext();
-  const search = useSearchContext().search.toLocaleLowerCase();
+  const { search, clear } = useSearchContext();
   const list = useList(store, listId);
   const children = useListChildren(store, listId);
-  const sortedChildren = filterByText(children, search).sort(sortByPosition);
+  const sortedChildren = filterByText(children, search.toLocaleLowerCase()).sort(sortByPosition);
+
+  useEffect(() => {
+    clear();
+  }, [listId, clear]);
 
   const addNoteAtTop = () => {
     if (!list) return;
@@ -65,26 +70,12 @@ export default function List() {
           <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
         </li>
         {sortedChildren.map((child, i) => (
-          <li
-            key={child.id}
-            draggable="true"
-            // onDragStart={(e) => {
-            //   e.dataTransfer.setData("text/plain", child.id);
-            // }}
-            // onDrop={(e) => {
-            //   // Swap positions
-            //   e.preventDefault();
-            //   const draggedNoteId = e.dataTransfer.getData("text/plain");
-            //   const draggedNote = notes.find((n) => n.id === draggedNoteId);
-            //   updatePosition({ id: draggedNoteId, type: child.type, position: child.position });
-            //   updatePosition({ id: child.id, type: child.type, position: draggedNote.position });
-            // }}
-          >
+          <li key={child.id}>
             {child.type === "note" ? (
               <>
-                <NoteCard note={child} position={child.position} autofocus={i === 0} />
-                <button
-                  className="w-full h-4 hover:bg-blue-100"
+                <NoteCard note={child} position={child.position} />
+                <div
+                  className="w-full h-2 hover:bg-blue-100"
                   onClick={() => {
                     const before = child.position;
                     const after = sortedChildren[i + 1]?.position ?? null;

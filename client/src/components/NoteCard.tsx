@@ -22,7 +22,8 @@ export function NoteCard({
   const contentRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
-  const showDetails = view === "card" || hover || focused;
+  // const showDetails = view === "card" || hover || focused;
+  const showDetails = false;
   const [showLists, setShowLists] = useState(false);
 
   const save = useCallback(() => {
@@ -62,13 +63,14 @@ export function NoteCard({
 
   return (
     <div
-      className={`rounded bg-white ${view === "card" ? "shadow-md" : ""}`}
+      // className={`rounded bg-white ${view === "card" ? "shadow-md" : ""}`}
+      className={`rounded bg-white ${view === "card" ? "border border-gray-200" : ""}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <div
         ref={contentRef}
-        className="note p-4"
+        className="note p-2"
         contentEditable
         suppressContentEditableWarning
         // delete on backspace if empty
@@ -87,8 +89,8 @@ export function NoteCard({
             .join(""),
         }}
       />
-      <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
-        {showDetails && (
+      {showDetails && (
+        <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
           <>
             {position ?? (
               <div>
@@ -125,8 +127,8 @@ export function NoteCard({
               <button onClick={() => setShowLists(true)}>Lists</button>
             )}
           </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

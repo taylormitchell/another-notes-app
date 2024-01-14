@@ -1,6 +1,7 @@
 import { Search } from "react-feather";
-import { useState } from "react";
+import { useRef } from "react";
 import { useHotkey } from "../lib/utils";
+import { useSearchContext } from "../lib/SearchContext";
 
 export function MiniSearchBar({
   search,
@@ -9,36 +10,33 @@ export function MiniSearchBar({
   search: string;
   setSearch: (search: string) => void;
 }) {
-  const [showInput, setShowInput] = useState(false);
-  useHotkey("Escape", () => {
-    setSearch("");
-    setShowInput(false);
-  });
+  const ref = useRef<HTMLInputElement>(null);
+  const { isOpen, setIsOpen, clear } = useSearchContext();
+
+  // Open search bar
   useHotkey(
-    (e) => {
-      return e.metaKey && e.key === "f";
-    },
-    () => {
-      setShowInput(true);
-    }
+    (e) => e.metaKey && e.key === "f",
+    () => setIsOpen(true)
   );
 
+  useHotkey("Escape", clear);
+
   return (
-    <div className="flex items-center gap-2">
+    <div ref={ref} className="flex items-center gap-2">
       <button
         onClick={() => {
-          setShowInput((v) => !v);
+          setIsOpen((v) => !v);
         }}
       >
         <Search />
       </button>
-      {showInput && (
+      {isOpen && (
         <input
           className="border border-gray-300 rounded px-4 pl-8"
           autoFocus
           onBlur={(e) => {
             if (e.target.value === "") {
-              setShowInput(false);
+              setIsOpen(false);
             }
           }}
           value={search}
