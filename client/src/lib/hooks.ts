@@ -1,50 +1,48 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Store, Event } from "./store";
 import { Note } from "../types";
 
 /**
  * todo this feels sketch
  */
-export function useSubscribeToEvent<T>(
+export function useStoreQuery<T>(
   store: Store,
-  shouldUpdate: (event: Event) => boolean,
-  get: () => T
+  shouldUpdate: (event: Event, store: Store) => boolean,
+  get: (store: Store) => T
 ) {
-  const [value, setValue] = useState(() => get());
-  const getRef = useRef(get);
-  getRef.current = get;
+  const [value, setValue] = useState(() => get(store));
   useEffect(() => {
+    setValue(get(store));
     return store.subscribeToEvent((event) => {
-      if (shouldUpdate(event)) {
-        setValue(getRef.current());
+      if (shouldUpdate(event, store)) {
+        setValue(get(store));
       }
     });
-  }, [store, setValue, shouldUpdate]);
-
+  }, [store, setValue, shouldUpdate, get]);
   return value;
 }
 
 export function useNotes(store: Store) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    (e) => e.type === "note",
-    () => store.getNotes()
+    useCallback((event: Event) => event.type === "note", []),
+    useCallback((s) => s.getNotes(), [])
   );
 }
 
 export function useNote(store: Store, noteId: string) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    (e) => e.type === "note" && e.id === noteId,
-    () => store.getNote(noteId)
+    useCallback((e: Event) => e.type === "note" && e.id === noteId, [noteId]),
+    useCallback((s) => s.getNote(noteId), [noteId])
   );
 }
 
 export function useNotesWithParentIds(store: Store): (Note & { parentIds: string[] })[] {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    () => true,
-    () => {
+    useCallback(() => true, []),
+    useCallback((store) => {
       const notes = store.exec<Note>("SELECT * FROM Note");
       const parentIds = store.exec<{ child_note_id: string; parent_list_id: string }>(
         "SELECT child_note_id, parent_list_id FROM ListEntry"
@@ -55,73 +53,68 @@ export function useNotesWithParentIds(store: Store): (Note & { parentIds: string
         return acc;
       }, {} as Record<string, string[]>);
       return notes.map((note) => ({ ...note, parentIds: parentsByNoteId[note.id] ?? [] }));
-    }
+    }, [])
   );
 }
 
 export function useLists(store: Store) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    () => true,
-    () => store.getListsWithChildren()
+    useCallback(() => true, []),
+    useCallback((s) => s.getListsWithChildren(), [])
   );
 }
 
 export function useListNotes(store: Store, listId: string) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    (event) => {
-      return (
-        (event.type === "list" && event.id === listId) ||
-        (event.type === "listentry" && event.parent_list_id === listId)
-      );
-    },
-    () => store.getNotesInList(listId)
+    useCallback(
+      (event) => {
+        return (
+          (event.type === "list" && event.id === listId) ||
+          (event.type === "listentry" && event.parent_list_id === listId)
+        );
+      },
+      [listId]
+    ),
+    useCallback((store) => store.getNotesInList(listId), [listId])
   );
 }
 
 export function useList(store: Store, listId: string) {
-  const [list, setList] = useState(() => store.getList(listId));
-  useEffect(() => {
-    setList(store.getList(listId));
-    return store.subscribeToEvent((event) => {
-      if (event.type === "list" && event.id === listId) {
-        setList(store.getList(listId));
-      }
-    });
-  }, [store, listId]);
-
-  return list;
+  return useStoreQuery(
+    store,
+    useCallback((event: Event) => event.type === "list" && event.id === listId, [listId]),
+    useCallback(() => store.getList(listId), [store, listId])
+  );
 }
 
 export function useNotesInList(store: Store, listId: string) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    (event) =>
-      (event.type === "listentry" && event.parent_list_id === listId) ||
-      (event.type === "note" && store.listHasNoteId(listId, event.id)) ||
-      (event.type === "list" && event.id === listId),
-    () => store.getNotesInList(listId)
+    useCallback(
+      (event, store) =>
+        (event.type === "listentry" && event.parent_list_id === listId) ||
+        (event.type === "note" && store.listHasNoteId(listId, event.id)) ||
+        (event.type === "list" && event.id === listId),
+      [listId]
+    ),
+    useCallback((store) => store.getNotesInList(listId), [listId])
   );
 }
 
 export function useListChildren(store: Store, listId: string) {
-  const [children, setChildren] = useState(() => store.getListChildren(listId));
-  useEffect(() => {
-    setChildren(store.getListChildren(listId));
-    return store.subscribeToEvent((event) => {
-      if (event.type === "listentry" && event.parent_list_id === listId) {
-        setChildren(store.getListChildren(listId));
-      }
-    });
-  }, [store, listId]);
-  return children;
+  return useStoreQuery(
+    store,
+    useCallback((event) => event.type === "listentry" && event.parent_list_id === listId, [listId]),
+    useCallback((store) => store.getListChildren(listId), [listId])
+  );
 }
 
 export function useNoteParentIds(store: Store, noteId: string) {
-  return useSubscribeToEvent(
+  return useStoreQuery(
     store,
-    (event) => event.type === "listentry" && event.child_note_id === noteId,
-    () => store.getNoteParentListIds(noteId)
+    useCallback((event) => event.type === "listentry" && event.child_note_id === noteId, [noteId]),
+    useCallback((store) => store.getNoteParentListIds(noteId), [noteId])
   );
 }

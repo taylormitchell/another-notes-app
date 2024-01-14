@@ -14,7 +14,8 @@ import { CreateButton } from "../components/CreateButton";
 import { useSearchContext } from "../lib/SearchContext";
 import { ItemsColumn } from "../components/ItemsColumn";
 import { env } from "../lib/env";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Note } from "../types";
 
 export default function List() {
   const listId = useParams().id ?? "";
@@ -23,6 +24,7 @@ export default function List() {
   const list = useList(store, listId);
   const children = useListChildren(store, listId);
   const sortedChildren = filterByText(children, search.toLocaleLowerCase()).sort(sortByPosition);
+  const focusedNote = useRef<Note | null>(null);
 
   useEffect(() => {
     clear();
@@ -45,6 +47,20 @@ export default function List() {
     () => {
       if (inputFocused()) return false;
       addNoteAtTop();
+    }
+  );
+
+  useHotkey(
+    (e) => e.metaKey && e.key === "Enter",
+    () => {
+      console.log("meta enter", { focusedNote: focusedNote.current, list });
+      if (!focusedNote.current || !list) return;
+      const i = sortedChildren.findIndex((child) => child.id === focusedNote.current?.id);
+      const before = sortedChildren[i]?.position ?? null;
+      const after = sortedChildren[i + 1]?.position ?? null;
+      store.addNote({
+        listPositions: [{ id: list.id, position: generatePositionBetween(before, after) }],
+      });
     }
   );
 
@@ -73,7 +89,7 @@ export default function List() {
           <li key={child.id}>
             {child.type === "note" ? (
               <>
-                <NoteCard note={child} position={child.position} />
+                <NoteCard note={child} position={child.position} focusRef={focusedNote} />
                 <div
                   className="w-full h-2 hover:bg-blue-100"
                   onClick={() => {

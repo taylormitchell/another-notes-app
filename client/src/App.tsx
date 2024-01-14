@@ -76,6 +76,16 @@ function Layout() {
     }
   );
 
+  useHotkey(
+    (e) => e.shiftKey && e.key.toLocaleLowerCase() === "l",
+    () => {
+      if (inputFocused()) return false;
+      const list = store.addList({ name: "Untitled" });
+      store.addNote({ listPositions: [{ id: list.id }] });
+      navigate(`/lists/${list.id}`);
+    }
+  );
+
   return (
     <div>
       <header className="flex justify-between p-4 items-center">

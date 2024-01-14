@@ -12,18 +12,19 @@ export function NoteCard({
   note,
   position,
   autofocus,
+  focusRef,
 }: {
   note: Note;
   position?: string;
   autofocus?: boolean;
+  focusRef?: React.MutableRefObject<Note | null>;
 }) {
   const store = useStoreContext();
   const { view } = useDisplayContext();
   const contentRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
-  // const showDetails = view === "card" || hover || focused;
-  const showDetails = false;
+  const showDetails = view === "card" || hover || focused;
   const [showLists, setShowLists] = useState(false);
 
   const save = useCallback(() => {
@@ -47,6 +48,13 @@ export function NoteCard({
       el.removeEventListener("focusout", save);
     };
   }, [save]);
+
+  // pass focus up to parent
+  useEffect(() => {
+    if (focused && focusRef) {
+      focusRef.current = note;
+    }
+  }, [focused, focusRef, note]);
 
   useHotkey("Escape", () => {
     if (focused) {
@@ -92,13 +100,7 @@ export function NoteCard({
       {showDetails && (
         <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
           <>
-            {position ?? (
-              <div>
-                {new Date(note.created_at).toLocaleString()} ({position})
-              </div>
-            )}
-            {/* upvote button */}
-            <div>
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => {
                   store.upvoteNote(note.id);
