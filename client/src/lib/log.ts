@@ -7,14 +7,14 @@ function createLogger() {
     error: LogFunction;
   } {
     return {
-      info: (msg, ...params) => console.log(`[${namespace}]:`, msg, ...params),
+      info: (msg, ...params) => console.debug(`[${namespace}]:`, msg, ...params),
       warn: (msg, ...params) => console.warn(`[${namespace}]:`, msg, ...params),
       error: (msg, ...params) => console.error(`[${namespace}]:`, msg, ...params),
     };
   }
 
   const baseLoggers: { info: LogFunction; warn: LogFunction; error: LogFunction } = {
-    info: (msg, ...params) => console.log(msg, ...params),
+    info: (msg, ...params) => console.debug(msg, ...params),
     warn: (msg, ...params) => console.warn(msg, ...params),
     error: (msg, ...params) => console.error(msg, ...params),
   };

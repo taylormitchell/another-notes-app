@@ -1,11 +1,19 @@
 import { Link, useParams } from "react-router-dom";
 import { useList, useListChildren } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
-import { sortByPosition, generatePositionBetween, filterByText } from "../lib/utils";
+import {
+  sortByPosition,
+  generatePositionBetween,
+  filterByText,
+  noModifiers,
+  inputFocused,
+  useHotkey,
+} from "../lib/utils";
 import { NoteCard } from "../components/NoteCard";
 import { CreateButton } from "../components/CreateButton";
 import { useSearchContext } from "../lib/SearchContext";
 import { ItemsColumn } from "../components/ItemsColumn";
+import { env } from "../lib/env";
 
 export default function List() {
   const listId = useParams().id ?? "";
@@ -15,11 +23,8 @@ export default function List() {
   const children = useListChildren(store, listId);
   const sortedChildren = filterByText(children, search).sort(sortByPosition);
 
-  if (!list) {
-    return <div>List not found</div>;
-  }
-
   const addNoteAtTop = () => {
+    if (!list) return;
     store.addNote({
       listPositions: [
         {
@@ -29,6 +34,18 @@ export default function List() {
       ],
     });
   };
+
+  useHotkey(
+    (e) => e.key === "n" && noModifiers(e),
+    () => {
+      if (inputFocused()) return false;
+      addNoteAtTop();
+    }
+  );
+
+  if (!list) {
+    return <div>List not found</div>;
+  }
 
   return (
     <div>
@@ -65,7 +82,7 @@ export default function List() {
           >
             {child.type === "note" ? (
               <>
-                <NoteCard note={child} position={child.position} />
+                <NoteCard note={child} position={child.position} autofocus={i === 0} />
                 <button
                   className="w-full h-4 hover:bg-blue-100"
                   onClick={() => {
@@ -95,7 +112,7 @@ export default function List() {
           </li>
         ))}
       </ItemsColumn>
-      <CreateButton onClick={addNoteAtTop} />
+      {env.isTouchDevice && <CreateButton onClick={addNoteAtTop} />}
     </div>
   );
 }

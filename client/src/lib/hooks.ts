@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { Store, Event } from "./store";
 import { Note } from "../types";
 
+/**
+ * todo this feels sketch
+ */
 export function useSubscribeToEvent<T>(
   store: Store,
   shouldUpdate: (event: Event) => boolean,
@@ -10,15 +13,14 @@ export function useSubscribeToEvent<T>(
   const [value, setValue] = useState(() => get());
   const getRef = useRef(get);
   getRef.current = get;
-  const shouldUpdateRef = useRef(shouldUpdate);
-  shouldUpdateRef.current = shouldUpdate;
   useEffect(() => {
     return store.subscribeToEvent((event) => {
-      if (shouldUpdateRef.current(event)) {
+      if (shouldUpdate(event)) {
         setValue(getRef.current());
       }
     });
-  }, [store, setValue]);
+  }, [store, setValue, shouldUpdate]);
+
   return value;
 }
 
@@ -79,11 +81,17 @@ export function useListNotes(store: Store, listId: string) {
 }
 
 export function useList(store: Store, listId: string) {
-  return useSubscribeToEvent(
-    store,
-    (event) => event.type === "list" && event.id === listId,
-    () => store.getList(listId)
-  );
+  const [list, setList] = useState(() => store.getList(listId));
+  useEffect(() => {
+    setList(store.getList(listId));
+    return store.subscribeToEvent((event) => {
+      if (event.type === "list" && event.id === listId) {
+        setList(store.getList(listId));
+      }
+    });
+  }, [store, listId]);
+
+  return list;
 }
 
 export function useNotesInList(store: Store, listId: string) {
@@ -98,11 +106,16 @@ export function useNotesInList(store: Store, listId: string) {
 }
 
 export function useListChildren(store: Store, listId: string) {
-  return useSubscribeToEvent(
-    store,
-    (event) => event.type === "listentry" && event.parent_list_id === listId,
-    () => store.getListChildren(listId)
-  );
+  const [children, setChildren] = useState(() => store.getListChildren(listId));
+  useEffect(() => {
+    setChildren(store.getListChildren(listId));
+    return store.subscribeToEvent((event) => {
+      if (event.type === "listentry" && event.parent_list_id === listId) {
+        setChildren(store.getListChildren(listId));
+      }
+    });
+  }, [store, listId]);
+  return children;
 }
 
 export function useNoteParentIds(store: Store, noteId: string) {

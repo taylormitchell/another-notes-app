@@ -5,6 +5,7 @@ import { uuid } from "../lib/utils";
 import { CreateButton } from "../components/CreateButton";
 import { useModalsContext } from "../lib/modalContext";
 import { useSearchContext } from "../lib/SearchContext";
+import { env } from "../lib/env";
 
 export default function Lists() {
   const store = useStoreContext();
@@ -44,7 +45,7 @@ export default function Lists() {
       >
         +
       </button>
-      <CreateButton onClick={listModal.open} />
+      {env.isTouchDevice && <CreateButton onClick={listModal.open} />}
     </div>
   );
 }
