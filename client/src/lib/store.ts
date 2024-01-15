@@ -382,7 +382,7 @@ export class Store {
   getListChildren(listId: string): (ListWithPosition | NoteWithPosition)[] {
     const notes = this.exec<NoteWithPosition>(
       `
-      SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position, 'note' as type
+      SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position, 'note' as type, note.upvotes
       FROM listentry
       LEFT JOIN note ON listentry.child_note_id = note.id
       WHERE listentry.parent_list_id = ? AND listentry.child_note_id IS NOT NULL
@@ -404,7 +404,7 @@ export class Store {
   getListsWithChildren(listIds?: string[]): ListWithChildren[] {
     const lists = this.getLists(listIds);
     const result = this.exec<PersistedNote & { parent_list_id: string; position: string }>(
-      `SELECT ListEntry.parent_list_id, ListEntry.position, Note.id, Note.content, Note.created_at, Note.updated_at
+      `SELECT ListEntry.parent_list_id, ListEntry.position, Note.id, Note.content, Note.created_at, Note.updated_at, Note.upvotes
       FROM ListEntry
       LEFT JOIN Note ON ListEntry.child_note_id = Note.id
       ${listIds ? `WHERE ListEntry.parent_list_id IN (${listIds.map(() => "?").join(", ")})` : ""}
