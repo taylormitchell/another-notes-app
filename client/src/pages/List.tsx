@@ -8,6 +8,7 @@ import {
   noModifiers,
   inputFocused,
   useHotkey,
+  sortByUpvotes,
 } from "../lib/utils";
 import { NoteCard } from "../components/NoteCard";
 import { CreateButton } from "../components/CreateButton";
@@ -16,14 +17,18 @@ import { ItemsColumn } from "../components/ItemsColumn";
 import { env } from "../lib/env";
 import { useEffect, useRef } from "react";
 import { Note } from "../types";
+import { useDisplayContext } from "../lib/DisplayContext";
 
 export default function List() {
   const listId = useParams().id ?? "";
   const store = useStoreContext();
   const { search, clear } = useSearchContext();
+  const { sort } = useDisplayContext();
   const list = useList(store, listId);
   const children = useListChildren(store, listId);
-  const sortedChildren = filterByText(children, search.toLocaleLowerCase()).sort(sortByPosition);
+  const sortedChildren = filterByText(children, search.toLocaleLowerCase()).sort(
+    sort === "position" ? sortByPosition : sortByUpvotes
+  );
   const focusedNote = useRef<Note | null>(null);
 
   useEffect(() => {

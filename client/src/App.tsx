@@ -12,10 +12,12 @@ import Home from "./pages/Home";
 import { CommandBar } from "./components/CommandBar";
 import { inputFocused, useHotkey } from "./lib/utils";
 import { SearchProvider, useSearchContext } from "./lib/SearchContext";
-import { AlignJustify, Command, Square } from "react-feather";
+import { AlignJustify, ChevronDown, Command, Square } from "react-feather";
 import { MiniSearchBar } from "./components/MiniSearchBar";
 import { Sidebar } from "./components/Sidebar";
 import { DisplayProvider, useDisplayContext } from "./lib/DisplayContext";
+import { useState, useRef } from "react";
+import useEventListener from "./lib/useEventListener";
 
 const App = () => {
   const { store, isLoading } = useStore();
@@ -53,7 +55,7 @@ function Layout() {
   const navigate = useNavigate();
   const store = useStoreContext();
   const modals = useModalsContext();
-  const { view, setView } = useDisplayContext();
+  const { view, setView, sort, setSort } = useDisplayContext();
   const { search, setSearch } = useSearchContext();
   useHotkey(
     (e) => e.metaKey && e.key === "k",
@@ -95,20 +97,41 @@ function Layout() {
           <button onClick={modals.commandbar.open}>
             <Command />
           </button>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
-            <button
-              onClick={() => setView("card")}
-              className={`p-1 rounded-full ${view === "card" ? "bg-white" : "bg-transparent"}`}
-            >
-              <Square size={16} />
-            </button>
-            <button
-              onClick={() => setView("document")}
-              className={`p-1 rounded-full ${view === "document" ? "bg-white" : "bg-transparent"}`}
-            >
-              <AlignJustify size={16} />
-            </button>
-          </div>
+          <Dropdown title="Display">
+            <div className="flex flex-row gap-1 w-48">
+              <label htmlFor="sort">Sort by</label>
+              <select
+                id="sort"
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value as any);
+                }}
+              >
+                <option value="position">Position</option>
+                <option value="upvotes">Upvotes</option>
+              </select>
+            </div>
+            <div className="flex flex-row gap-1 w-48">
+              <label htmlFor="view">View</label>
+              <div id="view" className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+                <button
+                  onClick={() => setView("card")}
+                  className={`p-1 rounded-full ${view === "card" ? "bg-white" : "bg-transparent"}`}
+                >
+                  <Square size={16} />
+                </button>
+                <button
+                  onClick={() => setView("document")}
+                  className={`p-1 rounded-full ${
+                    view === "document" ? "bg-white" : "bg-transparent"
+                  }`}
+                >
+                  <AlignJustify size={16} />
+                </button>
+              </div>
+            </div>
+          </Dropdown>
+          {/* dropdown to select sort option */}
         </div>
       </header>
       <main>
@@ -116,6 +139,37 @@ function Layout() {
         {modals.createNote.isOpen && <CreateNoteModal />}
         {modals.commandbar.isOpen && <CommandBar />}
       </main>
+    </div>
+  );
+}
+
+/**
+ * A button which opens a dropdown menu when clicked.
+ * The content of the dropdown menu is passed as children.
+ */
+function Dropdown({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEventListener(document, "mousedown", (event) => {
+    if (!event.target) return;
+    if (ref.current && !ref.current.contains(event.target as HTMLElement)) {
+      setIsOpen(false);
+    }
+  });
+  return (
+    <div ref={ref} className="relative">
+      <button
+        className="flex items-center gap-1"
+        onClick={() => {
+          setIsOpen((v) => !v);
+        }}
+      >
+        {title}
+        <ChevronDown />
+      </button>
+      {isOpen && (
+        <div className="absolute top-8 right-0 bg-white shadow-lg rounded-lg p-2">{children}</div>
+      )}
     </div>
   );
 }

@@ -33,6 +33,18 @@ export function sortByPosition<T extends { position: string; created_at: string 
   return 0;
 }
 
+export function sortByUpvotes<T extends Note | List>(a: T, b: T): number {
+  if (a.type === "note" && b.type === "note") {
+    return b.upvotes - a.upvotes;
+  } else if (a.type === "note" && b.type === "list") {
+    return -1;
+  } else if (a.type === "list" && b.type === "note") {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): number {
   if (a.updated_at && b.updated_at) {
     return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
