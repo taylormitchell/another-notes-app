@@ -11,14 +11,15 @@ import { useNoteParentIds } from "../lib/hooks";
 export function NoteCard({
   note,
   position,
-  autofocus,
+  autoFocus,
   focusRef,
 }: {
   note: Note;
   position?: string;
-  autofocus?: boolean;
+  autoFocus?: boolean;
   focusRef?: React.MutableRefObject<Note | null>;
 }) {
+  console.log("autofocus", note.id, autoFocus);
   const store = useStoreContext();
   const { view } = useDisplayContext();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -64,10 +65,14 @@ export function NoteCard({
 
   // autofocus
   useEffect(() => {
-    if (autofocus) {
-      contentRef.current?.focus();
+    if (autoFocus) {
+      console.log("autofocus in note card");
+      setTimeout(() => {
+        console.log("focus");
+        contentRef.current?.focus();
+      }, 100);
     }
-  }, [autofocus]);
+  }, [autoFocus]);
 
   return (
     <div
@@ -80,6 +85,7 @@ export function NoteCard({
         ref={contentRef}
         className="note p-2"
         contentEditable
+        autoFocus={autoFocus}
         suppressContentEditableWarning
         // delete on backspace if empty
         onKeyDown={(e) => {
@@ -100,6 +106,8 @@ export function NoteCard({
       {showDetails && (
         <div className="h-8 text-gray-600 text-sm flex items-center p-2 gap-2">
           <>
+            {/* set focus on button press */}
+            <button onClick={() => contentRef.current?.focus()}>focus</button>
             <div>({position ?? ""})</div>
             <div className="flex items-center gap-1">
               <button

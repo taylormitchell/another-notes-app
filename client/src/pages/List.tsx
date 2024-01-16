@@ -16,7 +16,6 @@ import { useSearchContext } from "../lib/SearchContext";
 import { ItemsColumn } from "../components/ItemsColumn";
 import { env } from "../lib/env";
 import { useEffect, useRef } from "react";
-import { Note } from "../types";
 import { useDisplayContext } from "../lib/DisplayContext";
 
 export default function List() {
@@ -29,7 +28,7 @@ export default function List() {
   const sortedChildren = filterByText(children, search.toLocaleLowerCase()).sort(
     sort === "position" ? sortByPosition : sortByUpvotes
   );
-  const focusedNote = useRef<Note | null>(null);
+  const focusedNote = useRef<string | null>(null);
 
   useEffect(() => {
     clear();
@@ -37,7 +36,7 @@ export default function List() {
 
   const addNoteAtTop = () => {
     if (!list) return;
-    store.addNote({
+    return store.addNote({
       listPositions: [
         {
           id: list.id,
@@ -51,7 +50,9 @@ export default function List() {
     (e) => e.key === "n" && noModifiers(e),
     () => {
       if (inputFocused()) return false;
-      addNoteAtTop();
+      const note = addNoteAtTop();
+      focusedNote.current = note?.id ?? null;
+      console.log({ focusedNote: focusedNote.current });
     }
   );
 
@@ -59,7 +60,7 @@ export default function List() {
     (e) => e.metaKey && e.key === "Enter",
     () => {
       console.log("meta enter", { focusedNote: focusedNote.current, list });
-      if (!focusedNote.current || !list) return;
+      if (!list) return;
       const i = sortedChildren.findIndex((child) => child.id === focusedNote.current?.id);
       const before = sortedChildren[i]?.position ?? null;
       const after = sortedChildren[i + 1]?.position ?? null;
@@ -90,39 +91,46 @@ export default function List() {
         <li key="top-bottom">
           <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
         </li>
-        {sortedChildren.map((child, i) => (
-          <li key={child.id}>
-            {child.type === "note" ? (
-              <>
-                <NoteCard note={child} position={child.position} focusRef={focusedNote} />
-                <div
-                  className="w-full h-2 hover:bg-blue-100"
-                  onClick={() => {
-                    const before = child.position;
-                    const after = sortedChildren[i + 1]?.position ?? null;
-                    store.addNote({
-                      listPositions: [
-                        { id: list.id, position: generatePositionBetween(before, after) },
-                      ],
-                    });
-                  }}
-                />
-              </>
-            ) : (
-              <div className="p-4">
-                <Link to={`/lists/${child.id}`}>
-                  <h3 className="text-l font-bold">{child.name}</h3>
-                  <div>...</div>
-                </Link>
-                <div className="text-gray-600 text-sm">
-                  <div>
-                    {new Date(child.created_at).toLocaleString()} ({child.position})
+        {sortedChildren.map((child, i) => {
+          const autofocus = focusedNote.current === child.id;
+          if (autofocus) {
+            focusedNote.current = null;
+          }
+          console.log("autofocus", child.id, autofocus);
+          return (
+            <li key={child.id}>
+              {child.type === "note" ? (
+                <>
+                  <NoteCard note={child} position={child.position} autoFocus={autofocus} />
+                  <div
+                    className="w-full h-2 hover:bg-blue-100"
+                    onClick={() => {
+                      const before = child.position;
+                      const after = sortedChildren[i + 1]?.position ?? null;
+                      store.addNote({
+                        listPositions: [
+                          { id: list.id, position: generatePositionBetween(before, after) },
+                        ],
+                      });
+                    }}
+                  />
+                </>
+              ) : (
+                <div className="p-4">
+                  <Link to={`/lists/${child.id}`}>
+                    <h3 className="text-l font-bold">{child.name}</h3>
+                    <div>...</div>
+                  </Link>
+                  <div className="text-gray-600 text-sm">
+                    <div>
+                      {new Date(child.created_at).toLocaleString()} ({child.position})
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </li>
-        ))}
+              )}
+            </li>
+          );
+        })}
       </ItemsColumn>
       {env.isTouchDevice && <CreateButton onClick={addNoteAtTop} />}
     </div>
