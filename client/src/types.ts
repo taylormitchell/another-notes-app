@@ -37,4 +37,8 @@ export type NoteWithPosition = Note & { position: string };
 
 export type ListWithPosition = List & { position: string };
 
+export function hasPosition(entry: Note | List): entry is NoteWithPosition | ListWithPosition {
+  return "position" in entry;
+}
+
 export type ListWithChildren = List & { children: (ListWithPosition | NoteWithPosition)[] };

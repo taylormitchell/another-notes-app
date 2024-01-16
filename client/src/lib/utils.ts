@@ -52,6 +52,13 @@ export function sortByUpdatedAt<T extends { updated_at: string }>(a: T, b: T): n
   return 0;
 }
 
+export function sortByCreatedAt<T extends { created_at: string }>(a: T, b: T): number {
+  if (a.created_at && b.created_at) {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  }
+  return 0;
+}
+
 export function filterByText<T extends Note | List>(arr: T[], text: string): T[] {
   if (!text) return arr;
   const textLower = text.toLowerCase();

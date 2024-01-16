@@ -14,7 +14,7 @@ export default function Note() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center">
       <div className="w-full">
-        <NoteCard note={note} autofocus={true} />
+        <NoteCard note={note} autoFocus={true} />
       </div>
     </div>
   );

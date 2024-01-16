@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useList, useListChildren } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 import {
@@ -10,7 +10,6 @@ import {
   useHotkey,
   sortByUpvotes,
 } from "../lib/utils";
-import { NoteCard } from "../components/NoteCard";
 import { CreateButton } from "../components/CreateButton";
 import { useSearchContext } from "../lib/SearchContext";
 import { ItemsColumn } from "../components/ItemsColumn";
@@ -94,49 +93,8 @@ export default function List() {
         }}
         onBlur={() => (focusedNote.current = null)}
       >
-        <ItemsColumn>
-          <li key="top-bottom">
-            <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
-          </li>
-          {sortedChildren.map((child, i) => {
-            const autofocus = focusedNote.current === child.id;
-            return (
-              <li key={child.id}>
-                {child.type === "note" ? (
-                  <>
-                    <NoteCard note={child} position={child.position} autoFocus={autofocus} />
-                    <div
-                      className="w-full h-2 hover:bg-blue-100"
-                      onClick={() => {
-                        const before = child.position;
-                        const after = sortedChildren[i + 1]?.position ?? null;
-                        store.addNote({
-                          listPositions: [
-                            { id: list.id, position: generatePositionBetween(before, after) },
-                          ],
-                        });
-                      }}
-                    />
-                  </>
-                ) : (
-                  <div className="p-4">
-                    <Link to={`/lists/${child.id}`}>
-                      <h3 className="text-l font-bold">{child.name}</h3>
-                      <div>...</div>
-                    </Link>
-                    <div className="text-gray-600 text-sm">
-                      <div>
-                        {new Date(child.created_at).toLocaleString()} ({child.position})
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ItemsColumn>
+        <ItemsColumn children={sortedChildren} list={list} />
       </div>
-
       {env.isTouchDevice && <CreateButton onClick={addNoteAtTop} />}
     </div>
   );
