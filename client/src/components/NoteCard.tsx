@@ -12,14 +12,11 @@ export function NoteCard({
   note,
   position,
   autoFocus,
-  focusRef,
 }: {
   note: Note;
   position?: string;
   autoFocus?: boolean;
-  focusRef?: React.MutableRefObject<Note | null>;
 }) {
-  console.log("autofocus", note.id, autoFocus);
   const store = useStoreContext();
   const { view } = useDisplayContext();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -50,13 +47,6 @@ export function NoteCard({
     };
   }, [save]);
 
-  // pass focus up to parent
-  useEffect(() => {
-    if (focused && focusRef) {
-      focusRef.current = note;
-    }
-  }, [focused, focusRef, note]);
-
   useHotkey("Escape", () => {
     if (focused) {
       contentRef.current?.blur();
@@ -66,11 +56,7 @@ export function NoteCard({
   // autofocus
   useEffect(() => {
     if (autoFocus) {
-      console.log("autofocus in note card");
-      setTimeout(() => {
-        console.log("focus");
-        contentRef.current?.focus();
-      }, 100);
+      contentRef.current?.focus();
     }
   }, [autoFocus]);
 
@@ -84,6 +70,7 @@ export function NoteCard({
       <div
         ref={contentRef}
         className="note p-2"
+        data-note-id={note.id}
         contentEditable
         autoFocus={autoFocus}
         suppressContentEditableWarning

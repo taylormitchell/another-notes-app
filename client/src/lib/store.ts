@@ -58,7 +58,6 @@ export class Store {
       "emit_list_or_note_event",
       (type: "note" | "list", operation: Operation, id: string) => {
         const event: Event = { type, operation, id };
-        console.log("emit_event", event);
         this.eventListeners.forEach((l) => l(event));
       }
     );
@@ -73,7 +72,6 @@ export class Store {
         child_list_id: string | null
       ) => {
         const event: Event = { type, operation, id, parent_list_id, child_note_id, child_list_id };
-        console.log("emit_event", event);
         this.eventListeners.forEach((l) => l(event));
       }
     );
@@ -155,7 +153,6 @@ export class Store {
   }
 
   updateNote({ id, content }: { id: string; content: string }) {
-    console.log("updateNote", { id, content });
     this.exec("UPDATE Note SET content = ?, updated_at = ? WHERE id = ?", [
       content,
       new Date().toISOString(),
@@ -254,7 +251,7 @@ export class Store {
     listPositions: { id: string; position?: string }[];
   }) {
     if (!listPositions.length) {
-      console.warn("addNoteToLists called with empty listPositions");
+      log.warn("addNoteToLists called with empty listPositions");
     }
     const now = new Date().toISOString();
     const entries = listPositions.map((l) => ({
@@ -474,7 +471,6 @@ export const useStore = ():
   const [store, setStore] = useState<Store | null>(null);
   useEffect(() => {
     (async () => {
-      console.log({ frontend_env: env });
       if (env.isPersistenceDisabled) {
         setStore(new Store(await createSqlite()));
         return;
@@ -486,12 +482,10 @@ export const useStore = ():
         const sqlToApi = async (sql: string, params?: BindParams | undefined) => {
           await api.post("/sqlite", { sql, params });
         };
-        console.log("db", db);
         const store = new Store(db, sqlToApi);
-        console.log("store", store);
         setStore(store);
       } catch (e) {
-        console.error(e);
+        log("store").error(e);
       }
     })();
   }, []);
