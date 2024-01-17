@@ -73,9 +73,9 @@ export default function List() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col w-full">
       <h1
-        className="text-2xl font-bold text-center"
+        className="text-2xl font-bold text-center border-b-2 border-gray-200 pb-2"
         contentEditable
         suppressContentEditableWarning
         onBlur={(e) => {
@@ -86,6 +86,7 @@ export default function List() {
         dangerouslySetInnerHTML={{ __html: list.name }}
       />
       <div
+        className="flex flex-col flex-1 w-full"
         // Track focused note
         onFocus={(e) => {
           const id = e.target.getAttribute("data-note-id");

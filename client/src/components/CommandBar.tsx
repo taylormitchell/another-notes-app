@@ -32,6 +32,10 @@ export const CommandBar: React.FC = () => {
       name: "Lists",
       handler: () => navigate("/lists"),
     },
+    {
+      name: "Home",
+      handler: () => navigate("/"),
+    },
   ]
     .filter((command) => command.name.toLocaleLowerCase().includes(searchLower))
     .map((command) => ({

@@ -88,9 +88,14 @@ function Layout() {
     }
   );
 
+  useHotkey(
+    (e) => e.key === "Escape" && !inputFocused(),
+    () => navigate("/")
+  );
+
   return (
-    <div>
-      <header className="flex justify-between p-4 items-center">
+    <>
+      <header className="flex justify-between p-1 items-center">
         <Sidebar />
         <div className="flex items-center gap-4">
           <MiniSearchBar search={search} setSearch={setSearch} />
@@ -134,12 +139,13 @@ function Layout() {
           {/* dropdown to select sort option */}
         </div>
       </header>
-      <main>
+      {/* <main className="flex flex-1 basis-0"> */}
+      <main className="flex flex-1 w-full">
         <Outlet />
         {modals.createNote.isOpen && <CreateNoteModal />}
         {modals.commandbar.isOpen && <CommandBar />}
       </main>
-    </div>
+    </>
   );
 }
 

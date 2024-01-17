@@ -56,65 +56,58 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
   );
 
   return (
-    <main className="max-w-2xl mx-auto flex flex-col items-center">
-      <ul
-        className="w-full"
-        onFocus={(e) => {
-          const id = e.target.getAttribute("data-note-id");
-          if (id) focusedNote.current = id;
-        }}
-        onBlur={() => (focusedNote.current = null)}
-      >
-        <li key="top-bottom">
-          <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
-        </li>
-        {children.map((child, i) => {
-          const autoFocus = focusedNote.current === child.id;
-          return (
-            <li key={child.id}>
-              {child.type === "note" ? (
-                <>
-                  <NoteCard note={child} autoFocus={autoFocus} />
-                  <div
-                    className="w-full h-2 hover:bg-blue-100"
-                    onClick={() => {
-                      const before = child;
-                      const after = children[i + 1];
-                      store.addNote({
-                        listPositions:
-                          list && hasPosition(before) && hasPosition(after)
-                            ? [
-                                {
-                                  id: list.id,
-                                  position: generatePositionBetween(
-                                    before.position ?? null,
-                                    after.position ?? null
-                                  ),
-                                },
-                              ]
-                            : [],
-                      });
-                    }}
-                  />
-                </>
-              ) : (
-                <div className="p-4">
-                  <Link to={`/lists/${child.id}`}>
-                    <h3 className="text-l font-bold">{child.name}</h3>
-                    <div>...</div>
-                  </Link>
-                  {/* <div className="text-gray-600 text-sm">
-                    <div>
-                      {new Date(child.created_at).toLocaleString()} ({child.position})
-                    </div>
-                  </div> */}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </main>
+    <div
+      className="flex flex-col flex-1 basis-0 overflow-y-auto flex-col-reverse pb-32 w-full px-4 items-center"
+      onFocus={(e) => {
+        const id = e.target.getAttribute("data-note-id");
+        if (id) focusedNote.current = id;
+      }}
+      onBlur={() => (focusedNote.current = null)}
+    >
+      {children.map((child, i) => {
+        const autoFocus = focusedNote.current === child.id;
+        return (
+          <div key={child.id} className="max-w-2xl w-full">
+            {child.type === "note" ? (
+              <>
+                <NoteCard note={child} autoFocus={autoFocus} />
+                <div
+                  className="w-full h-2 hover:bg-blue-100"
+                  onClick={() => {
+                    const before = child;
+                    const after = children[i + 1];
+                    store.addNote({
+                      listPositions:
+                        list && hasPosition(before) && hasPosition(after)
+                          ? [
+                              {
+                                id: list.id,
+                                position: generatePositionBetween(
+                                  before.position ?? null,
+                                  after.position ?? null
+                                ),
+                              },
+                            ]
+                          : [],
+                    });
+                  }}
+                />
+              </>
+            ) : (
+              <div className="p-4">
+                <Link to={`/lists/${child.id}`}>
+                  <h3 className="text-l font-bold">{child.name}</h3>
+                  <div>...</div>
+                </Link>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <div key="top-bottom">
+        <button className="w-full h-4 hover:bg-blue-100" onClick={addNoteAtTop} />
+      </div>
+    </div>
   );
 }
 
