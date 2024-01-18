@@ -57,17 +57,19 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
 
   return (
     <div
-      className="flex flex-col flex-1 basis-0 overflow-y-auto flex-col-reverse pb-32 w-full px-4 items-center"
+      className="flex flex-col flex-1 basis-0 overflow-y-auto flex-col-reverse w-full px-4 items-center"
       onFocus={(e) => {
         const id = e.target.getAttribute("data-note-id");
         if (id) focusedNote.current = id;
       }}
       onBlur={() => (focusedNote.current = null)}
     >
+      {/* spacer which pushes items to the top when there are few, and is padding at the bottom when there are many */}
+      <div key="top-top" className="flex-1 min-h-32" />
       {children.map((child, i) => {
         const autoFocus = focusedNote.current === child.id;
         return (
-          <div key={child.id} className="max-w-2xl w-full">
+          <div key={child.id} className="max-w-2xl w-full flex-0">
             {child.type === "note" ? (
               <>
                 <NoteCard note={child} autoFocus={autoFocus} />

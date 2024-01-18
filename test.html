@@ -1,0 +1,46 @@
+<html lang="en">
+  <head>
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <div id="root"> -->
+    <div id="root" style="display: flex; flex-direction: column">
+      <header id="header" style="border: 1px solid red"><h1>Header</h1></header>
+      <div
+        id="scrollable-container"
+        style="border: 1px solid blue; flex-basis: 0; flex-grow: 1; overflow-y: scroll"
+      >
+        <!-- <div id="scrollable-container" style="border: 1px solid blue"> -->
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+        <div style="height: 300px; width: 100%; border: 1px solid green"></div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<!-- 
+    - main/header and main that goes beyond the root div
+    - I've got a scrollable container. then wrap in a div which is flex. if I don't also
+      make that div grow, then it's child will not grow either, and stay at 0 height. 
+    - I only need flex-basis: 0 on the scrollable container, not the flex div. That's because
+    the scrollable containers height is determined by it's content if we don't set it. But 
+    ??
+    - When I remove the flex from the root, what happens?
+ -->
