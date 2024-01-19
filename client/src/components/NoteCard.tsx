@@ -5,8 +5,7 @@ import { ArrowDown, ArrowUp, Maximize2 } from "react-feather";
 import { Link } from "react-router-dom";
 import { useHotkey } from "../lib/utils";
 import { useDisplayContext } from "../lib/DisplayContext";
-import ListSelection from "./ListSelection";
-import { useNoteParentIds } from "../lib/hooks";
+import { CardListSelection } from "./CardListSelection";
 
 export function NoteCard({
   note,
@@ -23,7 +22,6 @@ export function NoteCard({
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
   const showDetails = view === "card" || hover || focused;
-  const [showLists, setShowLists] = useState(false);
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
@@ -119,38 +117,10 @@ export function NoteCard({
               </Link>
             </div>
             <div></div>
-            {showLists ? (
-              <CardListSelection note={note} close={() => setShowLists(false)} />
-            ) : (
-              <button onClick={() => setShowLists(true)}>Lists</button>
-            )}
+            <CardListSelection itemId={note.id} />
           </>
         </div>
       )}
     </div>
-  );
-}
-
-function CardListSelection({ note, close }: { note: Note; close: () => void }) {
-  const store = useStoreContext();
-  const listIdsWithNote = useNoteParentIds(store, note.id);
-  return (
-    <>
-      <div className="relative">
-        <div className="absolute top-0 left-0 z-13">
-          <ListSelection
-            selectedIds={listIdsWithNote}
-            toggleSelection={(id: string) => {
-              if (listIdsWithNote.includes(id)) {
-                store.removeNoteFromList({ noteId: note.id, listId: id });
-              } else {
-                store.addNoteToList({ noteId: note.id, listId: id });
-              }
-            }}
-            close={close}
-          />
-        </div>
-      </div>
-    </>
   );
 }

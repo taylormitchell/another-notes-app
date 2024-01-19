@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
 import { generatePositionBetween, inputFocused, noModifiers, useHotkey } from "../lib/utils";
 import { List, Note, hasPosition } from "../types";
 import { NoteCard } from "./NoteCard";
 import { useStoreContext } from "../lib/store";
 import { useRef } from "react";
+import { ListCard } from "./ListCard";
+import { X } from "react-feather";
 
 // TODO: feels sketchy that I need to do all the checks for list and positions
 // - maybe make it so when a list is provided, the children type is NoteWithPosition | ListWithPosition
@@ -26,6 +27,22 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
     });
   };
 
+  const addListAtTop = () => {
+    const top = children[0];
+    return store.addList({
+      name: Date.now().toString(),
+      listPositions:
+        list && hasPosition(top)
+          ? [
+              {
+                id: list.id,
+                position: generatePositionBetween(null, top.position ?? null),
+              },
+            ]
+          : [],
+    });
+  };
+
   useHotkey(
     (e) => e.key === "n" && noModifiers(e),
     () => {
@@ -33,6 +50,11 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
       const note = addNoteAtTop();
       focusedNote.current = note?.id ?? null;
     }
+  );
+
+  useHotkey(
+    (e) => e.key === "l" && noModifiers(e) && !inputFocused(),
+    () => !!addListAtTop()
   );
 
   useHotkey(
@@ -96,11 +118,16 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
                 />
               </>
             ) : (
-              <div className="p-4">
-                <Link to={`/lists/${child.id}`}>
-                  <h3 className="text-l font-bold">{child.name}</h3>
-                  <div>...</div>
-                </Link>
+              <div className="flex gap-2">
+                <ListCard list={child} />
+                <button
+                  onClick={() => {
+                    if (!list) return;
+                    store.removeItemFromList({ itemId: child.id, listId: list.id });
+                  }}
+                >
+                  <X size={16} />
+                </button>
               </div>
             )}
           </div>

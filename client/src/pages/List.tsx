@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useList, useListChildren } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 import {
@@ -16,6 +16,8 @@ import { ItemsColumn } from "../components/ItemsColumn";
 import { env } from "../lib/env";
 import { useEffect, useRef } from "react";
 import { useDisplayContext } from "../lib/DisplayContext";
+import { CardListSelection } from "../components/CardListSelection";
+import { Trash } from "react-feather";
 
 export default function List() {
   const listId = useParams().id ?? "";
@@ -28,6 +30,7 @@ export default function List() {
     sort === "position" ? sortByPosition : sortByUpvotes
   );
   const focusedNote = useRef<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     clear();
@@ -74,17 +77,34 @@ export default function List() {
 
   return (
     <div className="flex flex-col w-full">
-      <h1
-        className="text-2xl font-bold text-center border-b-2 border-gray-200 pb-2"
-        contentEditable
-        suppressContentEditableWarning
-        onBlur={(e) => {
-          const name = e.currentTarget.textContent;
-          if (!name) return;
-          store.updateList({ id: list.id, name });
-        }}
-        dangerouslySetInnerHTML={{ __html: list.name }}
-      />
+      <div className="relative border-b-2 border-gray-200 pb-2 flex">
+        <div className="flex-1 flex justify-center">
+          <div className="relative">
+            <p
+              className="text-2xl font-bold flex-0"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => {
+                const name = e.currentTarget.textContent;
+                if (!name) return;
+                store.updateList({ id: list.id, name });
+              }}
+              dangerouslySetInnerHTML={{ __html: list.name }}
+            />
+            <div className="flex gap-2 absolute top-0 right-0 transform translate-x-32 translate-y-1">
+              <CardListSelection itemId={list.id} />
+              <button
+                onClick={() => {
+                  store.deleteList(list.id);
+                  navigate("/");
+                }}
+              >
+                <Trash size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div
         className="flex flex-col flex-1 w-full"
         // Track focused note
@@ -96,6 +116,7 @@ export default function List() {
       >
         <ItemsColumn children={sortedChildren} list={list} />
       </div>
+
       {env.isTouchDevice && <CreateButton onClick={addNoteAtTop} />}
     </div>
   );

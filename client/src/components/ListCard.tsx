@@ -6,8 +6,8 @@ export function ListCard({ list }: { list: List }) {
     <div className="p-4">
       <Link to={`/lists/${list.id}`}>
         <h3 className="text-l font-bold">{list.name}</h3>
-        <div>...</div>
       </Link>
+      <div>...</div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { filterByText } from "../lib/utils";
 import { useLists } from "../lib/hooks";
 import { useStoreContext } from "../lib/store";
 
-const ListSelection = ({
+const MultiSelection = ({
   selectedIds,
   toggleSelection,
   close,
@@ -63,4 +63,4 @@ const ListSelection = ({
   );
 };
 
-export default ListSelection;
+export default MultiSelection;

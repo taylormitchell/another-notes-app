@@ -3,7 +3,7 @@ import { useStoreContext } from "../lib/store";
 import { useModalsContext } from "../lib/modalContext";
 import useEventListener from "../lib/useEventListener";
 import { useHotkey } from "../lib/utils";
-import ListSelection from "./ListSelection";
+import MultiSelection from "./MultiSelection";
 
 export const CreateNoteModal = () => {
   const { close } = useModalsContext().createNote;
@@ -61,7 +61,7 @@ export const CreateNoteModal = () => {
         {listSelectionOpen ? (
           <div className="relative">
             <div className="absolute top-0 left-0 z-13">
-              <ListSelection
+              <MultiSelection
                 selectedIds={selectedIds}
                 toggleSelection={(id: string) => {
                   if (selectedIds.includes(id)) {

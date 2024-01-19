@@ -118,3 +118,24 @@ export function useNoteParentIds(store: Store, noteId: string) {
     useCallback((store) => store.getNoteParentListIds(noteId), [noteId])
   );
 }
+
+export function useListParentIds(store: Store, listId: string) {
+  return useStoreQuery(
+    store,
+    useCallback((event) => event.type === "listentry" && event.child_list_id === listId, [listId]),
+    useCallback((store) => store.getNoteParentListIds(listId), [listId])
+  );
+}
+
+export function useItemParentIds(store: Store, itemId: string) {
+  return useStoreQuery(
+    store,
+    useCallback(
+      (event) =>
+        event.type === "listentry" &&
+        (event.child_note_id === itemId || event.child_list_id === itemId),
+      [itemId]
+    ),
+    useCallback((store) => store.getItemParentIds(itemId), [itemId])
+  );
+}

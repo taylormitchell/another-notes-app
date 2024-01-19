@@ -168,6 +168,10 @@ export class Store {
     return result[0] ? { ...result[0], type: "note" } : undefined;
   }
 
+  getItem(id: string): Note | List | undefined {
+    return this.getNote(id) ?? this.getList(id);
+  }
+
   deleteNote(id: string) {
     this.exec("DELETE FROM Note WHERE id = ?;", [id]);
   }
@@ -181,7 +185,13 @@ export class Store {
     return result[0];
   }
 
-  addList({ id = uuid(), name = "", created_at = "", updated_at = "" } = {}) {
+  addList({
+    id = uuid(),
+    name = "",
+    created_at = "",
+    updated_at = "",
+    listPositions = [] as { id: string; position?: string }[],
+  } = {}) {
     const now = new Date().toISOString();
     const list = { id, name, created_at: created_at || now, updated_at: updated_at || now };
     this.exec("INSERT INTO List (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)", [
@@ -190,6 +200,9 @@ export class Store {
       list.created_at,
       list.updated_at,
     ]);
+    if (listPositions.length) {
+      this.addItemToLists({ itemId: list.id, listPositions });
+    }
     return list;
   }
 
@@ -308,11 +321,56 @@ export class Store {
     );
   }
 
-  removeNoteFromList({ noteId, listId }: { noteId: string; listId: string }) {
-    this.exec("DELETE FROM ListEntry WHERE child_note_id = ? AND parent_list_id = ?", [
-      noteId,
-      listId,
-    ]);
+  addItemToList({
+    itemId,
+    listId,
+    position,
+  }: {
+    itemId: string;
+    listId: string;
+    position?: string;
+  }) {
+    return this.addItemToLists({ itemId, listPositions: [{ id: listId, position }] });
+  }
+
+  addItemToLists({
+    itemId,
+    listPositions,
+  }: {
+    itemId: string;
+    listPositions: { id: string; position?: string }[];
+  }) {
+    const now = new Date().toISOString();
+    const item = this.getItem(itemId);
+    const entries = listPositions.map((l) => ({
+      id: uuid(),
+      parent_list_id: l.id,
+      child_note_id: item?.type === "note" ? itemId : null,
+      child_list_id: item?.type === "list" ? itemId : null,
+      position: l.position ?? this.getTopPosition(l.id),
+      created_at: now,
+      updated_at: now,
+    }));
+    this.exec(
+      "INSERT INTO ListEntry (id, parent_list_id, child_note_id, child_list_id, position, created_at, updated_at) VALUES " +
+        entries.map(() => "(?, ?, ?, ?, ?, ?, ?)").join(", "),
+      entries.flatMap((e) => [
+        e.id,
+        e.parent_list_id,
+        e.child_note_id,
+        e.child_list_id,
+        e.position,
+        e.created_at,
+        e.updated_at,
+      ])
+    );
+  }
+
+  removeItemFromList({ itemId, listId }: { itemId: string; listId: string }) {
+    this.exec(
+      "DELETE FROM ListEntry WHERE (child_note_id = ? OR child_list_id = ?) AND parent_list_id = ?",
+      [itemId, itemId, listId]
+    );
   }
 
   /**
@@ -346,6 +404,22 @@ export class Store {
     const res = this.exec<{ parent_list_id: string }>(
       "SELECT parent_list_id FROM ListEntry WHERE child_note_id = ?",
       [noteId]
+    );
+    return res.map((r) => r.parent_list_id);
+  }
+
+  getListParentIds(listId: string): string[] {
+    const res = this.exec<{ parent_list_id: string }>(
+      "SELECT parent_list_id FROM ListEntry WHERE child_list_id = ?",
+      [listId]
+    );
+    return res.map((r) => r.parent_list_id);
+  }
+
+  getItemParentIds(itemId: string): string[] {
+    const res = this.exec<{ parent_list_id: string }>(
+      "SELECT parent_list_id FROM ListEntry WHERE child_note_id = ? OR child_list_id = ?",
+      [itemId, itemId]
     );
     return res.map((r) => r.parent_list_id);
   }
