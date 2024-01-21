@@ -94,4 +94,36 @@ export const migrations: Migration[] = [
       PRAGMA user_version = 4;
     `,
   },
+  {
+    version: 5,
+    sql: `
+      -- A list can only be a child once (aka. can only have a single parent)
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_listentry_child_list_unique ON ListEntry (child_list_id);
+
+      -- A list can't be a child of itself
+      CREATE TRIGGER trg_listentry_not_self_child_on_insert
+      BEFORE INSERT ON ListEntry
+      FOR EACH ROW
+      WHEN  NEW.child_list_id IS NOT NULL
+      BEGIN
+        SELECT CASE
+          WHEN NEW.parent_list_id = NEW.child_list_id THEN
+            RAISE(ABORT, 'A list cannot be a child of itself.')
+        END;
+      END;
+      CREATE TRIGGER trg_listentry_not_self_child_on_update
+      BEFORE UPDATE ON ListEntry
+      FOR EACH ROW
+      WHEN  NEW.child_list_id IS NOT NULL
+      BEGIN
+        SELECT CASE
+          WHEN NEW.parent_list_id = NEW.child_list_id THEN
+            RAISE(ABORT, 'A list cannot be a child of itself.')
+        END;
+      END;
+
+      -- Drop old broken index that's lingering
+      DROP INDEX idx_listentry_parent__child;
+    `,
+  },
 ];
