@@ -101,7 +101,7 @@ export const migrations: Migration[] = [
       CREATE UNIQUE INDEX IF NOT EXISTS idx_listentry_child_list_unique ON ListEntry (child_list_id);
 
       -- A list can't be a child of itself
-      CREATE TRIGGER trg_listentry_not_self_child_on_insert
+      CREATE TRIGGER IF NOT EXISTS trg_listentry_not_self_child_on_insert
       BEFORE INSERT ON ListEntry
       FOR EACH ROW
       WHEN  NEW.child_list_id IS NOT NULL
@@ -111,7 +111,7 @@ export const migrations: Migration[] = [
             RAISE(ABORT, 'A list cannot be a child of itself.')
         END;
       END;
-      CREATE TRIGGER trg_listentry_not_self_child_on_update
+      CREATE TRIGGER IF NOT EXISTS trg_listentry_not_self_child_on_update
       BEFORE UPDATE ON ListEntry
       FOR EACH ROW
       WHEN  NEW.child_list_id IS NOT NULL
@@ -123,7 +123,8 @@ export const migrations: Migration[] = [
       END;
 
       -- Drop old broken index that's lingering
-      DROP INDEX idx_listentry_parent__child;
+      DROP INDEX IF EXISTS idx_listentry_parent__child;
+      PRAGMA user_version = 5;
     `,
   },
 ];
