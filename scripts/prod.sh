@@ -52,12 +52,15 @@ if [ "$deploy" = true ]; then
   scp deploy.tar.gz $DROPLET_USER@$DROPLET_IP:~/deploy.tar.gz
   rm deploy.tar.gz
   ssh $DROPLET_USER@$DROPLET_IP \
+      "echo \"Unpacking files...\" && "\
       "rm -rf code/another-notes-app && mkdir code/another-notes-app && "\
       "tar -xzvf deploy.tar.gz -C code/another-notes-app --strip-components=1 && "\
       "rm deploy.tar.gz && "\
       "cd code/another-notes-app && "\
-      "PATH=/home/$DROPLET_USER/.nvm/versions/node/v17.7.1/bin:$PATH && "\
+      "echo \"Installing dependencies...\" && "\
+      "PATH=/home/$DROPLET_USER/.nvm/versions/node/v17.7.1/bin:\$PATH && "\
       "npm install --omit=dev && "\
+      "echo \"Starting the app...\" && "\
       "pm2 delete another-notes-app && "\
       "pm2 start \"npm start\" --name \"another-notes-app\""
 fi
