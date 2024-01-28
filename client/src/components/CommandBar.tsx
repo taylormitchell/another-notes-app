@@ -69,7 +69,37 @@ export const CommandBar: React.FC = () => {
       jsx: <div>{note.content}</div>,
       handler: () => navigate(`/notes/${note.id}`),
     }));
-  const filteredOptions: Option[] = [...commandOptions, ...listOptions, ...noteOptions];
+
+  const createOptions = [
+    {
+      name: `create-list "${search}"`,
+      jsx: (
+        <div className="flex items-center gap-2">
+          <List />
+          {`Create list "${search}"`}
+        </div>
+      ),
+      handler: () => {
+        const list = store.addList({ name: search });
+        navigate(`/lists/${list.id}`);
+      },
+    },
+    {
+      name: `create-note "${search}"`,
+      jsx: <div className="flex items-center gap-2">{`Create note "${search}"`}</div>,
+      handler: () => {
+        const note = store.addNote({ content: search });
+        navigate(`/notes/${note.id}`);
+      },
+    },
+  ].filter((command) => command.name.toLocaleLowerCase().includes(searchLower));
+
+  const filteredOptions: Option[] = [
+    ...commandOptions,
+    ...listOptions,
+    ...noteOptions,
+    ...createOptions,
+  ];
 
   const close = useCallback(() => {
     modal.close();
