@@ -454,8 +454,8 @@ export class Store {
     const notes = this.exec<NoteWithPosition>(
       `
       SELECT note.id, note.content, note.created_at, note.updated_at, listentry.position, 'note' as type, note.upvotes
-      FROM listentry
-      LEFT JOIN note ON listentry.child_note_id = note.id
+      FROM note
+      LEFT JOIN listentry ON listentry.child_note_id = note.id
       WHERE listentry.parent_list_id = ? AND listentry.child_note_id IS NOT NULL
     `,
       [listId]
@@ -463,8 +463,8 @@ export class Store {
     const lists = this.exec<ListWithPosition>(
       `
       SELECT list.id, list.name, list.created_at, list.updated_at, listentry.position, 'list' as type
-      FROM listentry
-      LEFT JOIN list ON listentry.child_list_id = list.id
+      FROM list
+      LEFT JOIN listentry ON listentry.child_list_id = list.id
       WHERE listentry.parent_list_id = ? AND listentry.child_list_id IS NOT NULL
     `,
       [listId]
