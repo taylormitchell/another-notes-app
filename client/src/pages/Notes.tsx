@@ -21,7 +21,7 @@ export default function Notes() {
   });
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col flex-1 w-full">
       <h1 className="text-2xl font-bold text-center border-b-2 border-gray-200 pb-2" />
       <ItemsColumn children={notes} />
       {env.isTouchDevice && (

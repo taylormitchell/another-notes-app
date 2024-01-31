@@ -60,8 +60,7 @@ export function NoteCard({
 
   return (
     <div
-      // className={`rounded bg-white ${view === "card" ? "shadow-md" : ""}`}
-      className={`rounded bg-white ${view === "card" ? "border border-gray-200" : ""}`}
+      className={`w-full rounded bg-white ${view === "card" ? "border border-gray-200" : ""}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >

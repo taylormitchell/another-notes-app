@@ -76,7 +76,7 @@ export default function List() {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col flex-1 w-full">
       <div className="relative border-b-2 border-gray-200 pb-2 flex">
         <div className="flex-1 flex justify-center">
           <div className="relative">

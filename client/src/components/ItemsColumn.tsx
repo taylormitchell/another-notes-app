@@ -5,11 +5,13 @@ import { useStoreContext } from "../lib/store";
 import { useRef } from "react";
 import { ListCard } from "./ListCard";
 import { X } from "react-feather";
+import { useNavigate } from "react-router-dom";
 
 // TODO: feels sketchy that I need to do all the checks for list and positions
 // - maybe make it so when a list is provided, the children type is NoteWithPosition | ListWithPosition
 function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: List }) {
   const store = useStoreContext();
+  const navigate = useNavigate();
   const focusedNote = useRef<string | null>(null);
 
   const addNoteAtTop = () => {
@@ -74,6 +76,14 @@ function ItemsColumn({ children, list }: { children: (Note | List)[]; list?: Lis
         ],
       });
       focusedNote.current = n.id;
+    }
+  );
+
+  useHotkey(
+    (e) => e.metaKey && e.key === ".",
+    () => {
+      if (!focusedNote.current) return;
+      navigate(`/notes/${focusedNote.current}`);
     }
   );
 

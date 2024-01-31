@@ -140,7 +140,7 @@ function Layout() {
         </div>
       </header>
       {/* <main className="flex flex-1 basis-0"> */}
-      <main className="flex flex-1 w-full">
+      <main className="flex flex-col flex-1 items-center">
         <Outlet />
         {modals.createNote.isOpen && <CreateNoteModal />}
         {modals.commandbar.isOpen && <CommandBar />}
