@@ -7,7 +7,7 @@ function getEnvVariable(key: string): string {
 }
 
 export const env = {
-  isPersistenceDisabled: getEnvVariable("VITE_IS_PERSISTENCE_DISABLED") === "true",
+  isBackendEnabled: getEnvVariable("VITE_IS_BACKEND_ENABLED") === "true",
   apiUrl: "/api",
   // import.meta.env.MODE === "development"
   //   ? getEnvVariable("VITE_LOCAL_SERVER_URL") + "/api"

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev": "bash scripts/dev.sh",
     "build": "bash scripts/prod.sh --build",
     "start": "bash scripts/prod.sh --build --run",
     "deploy": "bash scripts/prod.sh --build --deploy"

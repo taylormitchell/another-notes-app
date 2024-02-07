@@ -60,7 +60,9 @@ export const sqlitePromise = (async () => {
     }
     const newVersion = await getVersion(db);
     console.log("new sqlite version: ", newVersion);
-    await uploadSqlite(fs.readFileSync(sqliteFile));
+    if (env.IS_S3_PERSISTENCE_ENABLED) {
+      await uploadSqlite(fs.readFileSync(sqliteFile));
+    }
   } else {
     console.log("no migrations to apply");
   }
@@ -70,19 +72,21 @@ export const sqlitePromise = (async () => {
 // Save the sqlite file to s3 every minute
 // and when the process exits
 let isDirty = false;
-setInterval(() => {
-  if (isDirty) {
-    try {
-      uploadSqlite(fs.readFileSync(sqliteFile));
-      isDirty = false;
-    } catch (e) {
-      console.log(e);
+if (env.IS_S3_PERSISTENCE_ENABLED) {
+  setInterval(() => {
+    if (isDirty) {
+      try {
+        uploadSqlite(fs.readFileSync(sqliteFile));
+        isDirty = false;
+      } catch (e) {
+        console.log(e);
+      }
     }
-  }
-}, 1 * 60 * 1000); // 1 minute
-process.on("exit", () => {
-  uploadSqlite(fs.readFileSync(sqliteFile));
-});
+  }, 1 * 60 * 1000); // 1 minute
+  process.on("exit", () => {
+    uploadSqlite(fs.readFileSync(sqliteFile));
+  });
+}
 
 app.use("/api/sqlite", async (req: any, res: any) => {
   console.log("request to /api/sqlite");

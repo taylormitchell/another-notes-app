@@ -545,7 +545,7 @@ export const useStore = ():
   const [store, setStore] = useState<Store | null>(null);
   useEffect(() => {
     (async () => {
-      if (env.isPersistenceDisabled) {
+      if (!env.isBackendEnabled) {
         setStore(new Store(await createSqlite()));
         return;
       }

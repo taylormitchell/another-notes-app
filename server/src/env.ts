@@ -22,4 +22,5 @@ export const env = {
   FILE_NAME: getEnvVariable("FILE_NAME"),
   CLIENT_DIR: getEnvVariable("CLIENT_DIR"),
   PORT: getEnvVariable("PORT"),
+  IS_S3_PERSISTENCE_ENABLED: process.env.IS_S3_PERSISTENCE_ENABLED === "true",
 };
