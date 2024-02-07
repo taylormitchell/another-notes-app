@@ -4,6 +4,7 @@ import { Note } from "../types";
 
 export function useStoreQuery<T>(
   store: Store,
+  // TODO: maybe call this invalidate to align with react-query
   shouldUpdate: (event: Event, store: Store) => boolean,
   get: (store: Store) => T
 ) {
@@ -36,8 +37,8 @@ export function useStoreQuery<T>(
 export function useNotes(store: Store) {
   return useStoreQuery(
     store,
-    useCallback((event: Event) => event.type === "note", []),
-    useCallback((s) => s.getNotes(), [])
+    useCallback((e) => e.type === "note", []),
+    useCallback((s) => s.exec<Note[]>("SELECT *, 'note' as type FROM Note"), [])
   );
 }
 
