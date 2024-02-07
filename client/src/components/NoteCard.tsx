@@ -22,9 +22,11 @@ export function NoteCard({
   const [hover, setHover] = useState(false);
   const [focused, setFocused] = useState(false);
   const showDetails = view === "card" || hover || focused;
+  const isDirtyRef = useRef(false);
 
   const save = useCallback(() => {
     if (!contentRef.current) return;
+    if (!isDirtyRef.current) return;
     const lines: string[] = [];
     contentRef.current.childNodes.forEach((node) => {
       lines.push(node.textContent ?? "");
@@ -33,6 +35,7 @@ export function NoteCard({
       id: note.id,
       content: lines.join("\n"),
     });
+    isDirtyRef.current = false;
   }, [note.id, store]);
 
   // save on focusout
@@ -69,6 +72,7 @@ export function NoteCard({
         className="note p-2"
         data-note-id={note.id}
         contentEditable
+        onInput={() => (isDirtyRef.current = true)}
         autoFocus={autoFocus}
         suppressContentEditableWarning
         // delete on backspace if empty

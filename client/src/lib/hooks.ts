@@ -1,26 +1,37 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useReducer } from "react";
 import { Store, Event } from "./store";
 import { Note } from "../types";
 
-/**
- * todo this feels sketch
- */
 export function useStoreQuery<T>(
   store: Store,
   shouldUpdate: (event: Event, store: Store) => boolean,
   get: (store: Store) => T
 ) {
-  const [value, setValue] = useState(() => get(store));
-  useEffect(() => {
-    setValue(get(store));
-    return store.subscribeToEvent((event) => {
-      if (shouldUpdate(event, store)) {
-        setValue(get(store));
-      }
-    });
-  }, [store, setValue, shouldUpdate, get]);
-  return value;
+  const update = useReducer((x) => x + 1, 0)[1];
+  useEffect(
+    () => store.subscribeToEvent((e) => shouldUpdate(e, store) && update()),
+    [store, update, shouldUpdate, get]
+  );
+  return get(store);
 }
+
+// version where we cache the results
+// export function useStoreQuery<T>(
+//   store: Store,
+//   shouldUpdate: (event: Event, store: Store) => boolean,
+//   get: (store: Store) => T
+// ) {
+// const [value, setValue] = useState(() => get(store));
+// useEffect(() => {
+//   setValue(get(store));
+//   return store.subscribeToEvent((event) => {
+//     if (shouldUpdate(event, store)) {
+//       setValue(get(store));
+//     }
+//   });
+// }, [store, setValue, shouldUpdate, get]);
+// return value;
+// }
 
 export function useNotes(store: Store) {
   return useStoreQuery(
